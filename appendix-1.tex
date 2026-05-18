@@ -1,0 +1,206 @@
+\chapter{The First Appendix}
+\label{app:A}
+
+
+\section{Feature Descriptions}
+\label{app:feature_descriptions}
+
+\begin{longtable}{
+    >{\ttfamily\raggedright\arraybackslash}p{0.34\textwidth}
+    >{\raggedright\arraybackslash}p{0.58\textwidth}
+}
+\caption{Description of extracted window-level features.}
+\label{tab:feature_descriptions}\\
+\toprule
+Feature & Description \\
+\midrule
+\endfirsthead
+
+\toprule
+Feature & Description \\
+\midrule
+\endhead
+
+\bottomrule
+\endfoot
+
+ip\_src & Source host for which the window-level feature vector is constructed. \\
+window\_id & Integer identifier of the time window. \\
+window\_start\_ts & Start timestamp of the time window in milliseconds. \\
+
+flow\_count & Number of unidirectional flows initiated by the source host in the window. \\
+sent\_bytes & Total number of bytes sent by the source host in the window. \\
+sent\_packets & Total number of packets sent by the source host in the window.  \\
+received\_bytes & Total number of bytes received by the source host in the window. \\
+received\_packets & Total number of packets received by the source host in the window. \\
+
+mean\_duration\_s & Mean flow duration in seconds for flows initiated by the source host. \\
+std\_duration\_s & Standard deviation of flow duration in seconds. \\
+mean\_bytes\_per\_packet & Mean bytes-per-packet value across flows in the window. \\
+std\_bytes\_per\_packet & Standard deviation of bytes-per-packet values across flows. \\
+bytes\_per\_flow & Average number of sent bytes per flow. \\
+packets\_per\_flow & Average number of sent packets per flow. \\
+
+unique\_dst\_ip & Number of distinct destination IP addresses contacted by the source host. \\
+unique\_dst\_port & Number of distinct destination ports contacted by the source host. \\
+unique\_src\_port & Number of distinct source ports used by the source host. \\
+dst\_port\_per\_dst\_ip\_ratio & Ratio between distinct destination ports and distinct destination IP addresses. \\
+
+outbound\_ratio & Fraction of flows in the window for which the host is the originator. \\
+reply\_packet\_ratio & Ratio of received packets to sent packets for the source host. \\
+reply\_byte\_ratio & Ratio of received bytes to sent bytes for the source host. \\
+no\_reply\_packet\_score & Packet-based score indicating lack of reply traffic, computed as one minus the clipped reply packet ratio. \\
+no\_reply\_byte\_score & Byte-based score indicating lack of reply traffic, computed as one minus the clipped reply byte ratio. \\
+is\_pure\_upload\_like & Binary indicator set when almost all flows are outgoing. \\
+is\_pure\_download\_like & Binary indicator set when almost all flows are incoming. \\
+
+l4\_proto\_entropy & Shannon entropy of transport-layer protocol usage for the source host in the window. \\
+protocol\_entropy & Alias for \texttt{l4\_proto\_entropy}. \\
+ip\_src\_entropy\_window & Window-level Shannon entropy of source IP activity across all hosts. \\
+ip\_dst\_entropy & Shannon entropy of destination IP addresses contacted by the source host. \\
+port\_src\_entropy & Shannon entropy of source ports used by the source host. \\
+port\_dst\_entropy & Shannon entropy of destination ports contacted by the source host. \\
+tcp\_src\_port\_entropy & Shannon entropy of TCP source ports used by the source host. \\
+tcp\_dst\_port\_entropy & Shannon entropy of TCP destination ports contacted by the source host. \\
+udp\_src\_port\_entropy & Shannon entropy of UDP source ports used by the source host. \\
+udp\_dst\_port\_entropy & Shannon entropy of UDP destination ports contacted by the source host. \\
+
+tcp\_flow\_count & Number of TCP flows initiated by the source host in the window. \\
+tcp\_short\_flow\_count & Number of TCP flows with at most three packets. \\
+tcp\_short\_flow\_rate & Fraction of TCP flows that are short TCP flows. \\
+
+flow\_count\_delta1 & Difference in \texttt{flow\_count} compared to the previous window for the same source host. \\
+flow\_count\_mean3 & Rolling mean of \texttt{flow\_count} over the current and two previous windows for the same source host. \\
+
+unique\_dst\_ip\_delta1 & Difference in \texttt{unique\_dst\_ip} compared to the previous window for the same source host. \\
+unique\_dst\_ip\_mean3 & Rolling mean of \texttt{unique\_dst\_ip} over the current and two previous windows. \\
+
+unique\_dst\_port\_delta1 & Difference in \texttt{unique\_dst\_port} compared to the previous window for the same source host. \\
+unique\_dst\_port\_mean3 & Rolling mean of \texttt{unique\_dst\_port} over the current and two previous windows. \\
+
+tcp\_short\_flow\_rate\_delta1 & Difference in \texttt{tcp\_short\_flow\_rate} compared to the previous window for the same source host. \\
+tcp\_short\_flow\_rate\_mean3 & Rolling mean of \texttt{tcp\_short\_flow\_rate} over the current and two previous windows. \\
+
+no\_reply\_packet\_score\_delta1 & Difference in \texttt{no\_reply\_packet\_score} compared to the previous window for the same source host. \\
+no\_reply\_packet\_score\_mean3 & Rolling mean of \texttt{no\_reply\_packet\_score} over the current and two previous windows. \\
+
+ip\_dst\_entropy\_delta1 & Difference in \texttt{ip\_dst\_entropy} compared to the previous window for the same source host. \\
+ip\_dst\_entropy\_mean3 & Rolling mean of \texttt{ip\_dst\_entropy} over the current and two previous windows. \\
+
+port\_dst\_entropy\_delta1 & Difference in \texttt{port\_dst\_entropy} compared to the previous window for the same source host. \\
+port\_dst\_entropy\_mean3 & Rolling mean of \texttt{port\_dst\_entropy} over the current and two previous windows. \\
+
+outbound\_ratio\_delta1 & Difference in \texttt{outbound\_ratio} compared to the previous window for the same source host. \\
+outbound\_ratio\_mean3 & Rolling mean of \texttt{outbound\_ratio} over the current and two previous windows. \\
+
+\end{longtable}
+
+
+\section{Feature Sets}
+\label{app:feature_sets}
+
+\begin{longtable}{
+    >{\ttfamily\raggedright\arraybackslash}p{0.36\textwidth}
+    >{\raggedright\arraybackslash}p{0.56\textwidth}
+}
+\caption{Candidate feature sets used in the model evaluation.}
+\label{tab:candidate_feature_sets}\\
+\toprule
+Feature set & Included features \\
+\midrule
+\endfirsthead
+
+\toprule
+Feature set & Included features \\
+\midrule
+\endhead
+
+\bottomrule
+\endfoot
+
+\seqsplit{csv\_omni\_core\_clean}
+&
+\texttt{tcp\_short\_flow\_count},
+\texttt{tcp\_short\_flow\_rate\_mean3},
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{unique\_dst\_ip\_mean3},
+\texttt{no\_reply\_packet\_score\_mean3},
+\texttt{outbound\_ratio}.
+\\
+
+\seqsplit{csv\_golden\_minimal}
+&
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{tcp\_short\_flow\_rate\_mean3},
+\texttt{tcp\_short\_flow\_count},
+\texttt{no\_reply\_packet\_score\_mean3}.
+\\
+
+\seqsplit{csv\_recon\_core\_clean}
+&
+\texttt{ip\_dst\_entropy},
+\texttt{tcp\_short\_flow\_rate},
+\texttt{unique\_dst\_ip},
+\texttt{no\_reply\_packet\_score},
+\texttt{outbound\_ratio}.
+\\
+
+\seqsplit{csv\_recon\_core\_clean\_temporal}
+&
+\texttt{ip\_dst\_entropy},
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{tcp\_short\_flow\_rate},
+\texttt{unique\_dst\_ip},
+\texttt{no\_reply\_packet\_score},
+\texttt{outbound\_ratio}.
+\\
+
+\seqsplit{csv\_T2\_stealth\_scan}
+&
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{tcp\_short\_flow\_rate\_mean3},
+\texttt{unique\_dst\_ip},
+\texttt{outbound\_ratio\_mean3}.
+\\
+
+\seqsplit{csv\_T3\_T4\_T5\_loud\_scan}
+&
+\texttt{tcp\_short\_flow\_count},
+\texttt{flow\_count},
+\texttt{unique\_dst\_ip\_mean3},
+\texttt{tcp\_flow\_count}.
+\\
+
+\seqsplit{csv\_low\_slow\_clean}
+&
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{tcp\_short\_flow\_rate\_mean3},
+\texttt{unique\_dst\_ip\_mean3},
+\texttt{no\_reply\_packet\_score\_mean3},
+\texttt{outbound\_ratio\_mean3}.
+\\
+
+\seqsplit{csv\_horizontal\_scan\_clean}
+&
+\texttt{unique\_dst\_ip},
+\texttt{ip\_dst\_entropy},
+\texttt{flow\_count}.
+\\
+
+\seqsplit{csv\_ablation\_entropy\_only}
+&
+\texttt{ip\_dst\_entropy\_mean3},
+\texttt{port\_dst\_entropy\_mean3},
+\texttt{tcp\_src\_port\_entropy},
+\texttt{l4\_proto\_entropy}.
+\\
+
+\seqsplit{csv\_ablation\_asymmetry\_only}
+&
+\texttt{no\_reply\_packet\_score\_mean3},
+\texttt{no\_reply\_byte\_score},
+\texttt{outbound\_ratio},
+\texttt{reply\_packet\_ratio}.
+\\
+
+\end{longtable}

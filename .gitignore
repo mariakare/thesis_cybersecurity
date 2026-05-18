@@ -1,0 +1,26 @@
+# --- Core LaTeX Auxiliary Files ---
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# --- Bibliography Files (BibTeX / Biber cache) ---
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# --- VS Code / LaTeX Workshop Cache ---
+.vscode/
+*.xdv
+
+
+# --- System / OS Clutter ---
+Thumbs.db
+.DS_Store

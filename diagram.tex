@@ -1,0 +1,101 @@
+\begin{tikzpicture}[
+    node distance=1.5cm and 1.2cm, 
+    % --- BASE STYLES ---
+    box/.style={rectangle, rounded corners, inner sep=5pt, align=center, font=\small, minimum height=0.9cm, text width=2.8cm, thick},
+    hub/.style={circle, minimum size=2.8cm, align=center, font=\small\bfseries, thick},
+    line/.style={draw=black!60, thick}, 
+    iplabel/.style={font=\scriptsize, inner sep=2pt, text=black!80}, 
+    node sub/.style={label={[font=\small, text=black!80]below:{#1}}},    
+    % --- UNIFIED ZONE-BASED COLOR PALETTE ---
+    % UNIFIED IT (AMBER ZONE)
+    ithubnet/.style={hub, fill=orange!15, draw=orange!60!black},
+    itnode/.style={box, fill=orange!10, draw=orange!50!black},    
+    % BOUNDARY / DMZ (BLUE)
+    boundarynet/.style={box, fill=blue!12, draw=blue!60!black, text width=2.4cm},    
+    % NEUTRAL MONITOR (GRAY)
+    monitornode/.style={box, fill=gray!15, draw=gray!50!black, text width=2.6cm},    
+    % UNIFIED OT (PURPLE ZONE)
+    othubnet/.style={hub, fill=purple!15, draw=purple!60!black},
+    otnode/.style={box, fill=purple!10, draw=purple!50!black}
+]
+
+% ==========================================
+% LEFT SIDE (UNIFIED AMBER IT ZONE)
+% ==========================================
+\node[itnode, node sub={:6081}] (hmi) {HMI\\(Scada LTS)};
+\node[itnode, node sub={:6088}, below=1.8cm of hmi] (attacker) {Attacker\\(Kali)};
+\node[ithubnet, right=1.6cm of attacker, yshift=0.9cm] (it_hub) {IT\\192.168.90.0/24};
+
+% Clean right-angle bus for HMI and Attacker
+\coordinate (it_in) at ($(it_hub.west) + (-0.5cm, 0)$);
+\draw[line] (hmi.east) -- node[iplabel, above] {.107} (hmi.east -| it_in) -- (it_in);
+\draw[line] (attacker.east) -- node[iplabel, above] {.6} (attacker.east -| it_in) -- (it_in);
+\draw[line] (it_in) -- (it_hub.west);
+
+% ==========================================
+% MIDDLE (BLUE BOUNDARY & GRAY MONITOR)
+% ==========================================
+\node[boundarynet, node sub={:5000}, right=1.2cm of it_hub] (router) {Router};
+
+% --- Conntrack Viewer (GRAY, RETURNED to original position) ---
+% Positioned directly below the Router, showing its function as a central monitor.
+\node[monitornode, node sub={:8001}, below=1.5cm of router] (conntrack) {Conntrack Viewer};
+
+% Connections to Boundary elements
+\draw[line] (it_hub.east) -- node[iplabel, pos=0.5, anchor=south] {.200} (router.west);
+% Tapping point for the monitor at the boundary
+% \draw[line] ($(router.west) + (0.5cm, 0)$) |- (conntrack.west);
+
+% ==========================================
+% RIGHT SIDE (UNIFIED PURPLE OT ZONE)
+% ==========================================
+\node[othubnet, right=1.2cm of router] (ot_hub) {OT\\192.168.95.0/24};
+\draw[line] (router.east) -- node[iplabel, pos=0.5, anchor=south] {.200} (ot_hub.west);
+
+% ==========================================
+% OT DEVICES
+% ==========================================
+\node[otnode, node sub={:8080}, right=1.5cm of ot_hub] (plc) {PLC};
+\node[otnode, node sub={:6080}, below=1cm of plc] (workstation) {Workstation};
+
+\draw[line] (ot_hub.east) -- node[iplabel, pos=0.6, anchor=south] {.2} (plc.west);
+\draw[line] (ot_hub.340) -- ++(0.6cm, 0) |- node[iplabel, pos=0.8, anchor=south] {.5} (workstation.west);
+
+% ==========================================
+% SIMULATION GROUP
+% ==========================================
+\node[draw=violet!80!black, 
+      fill=white, 
+      dashed, 
+      rounded corners, 
+      minimum width=6cm, 
+      minimum height=9.4cm, 
+      above=1cm of plc, 
+      anchor=south, 
+      very thick] (sim_group) {};
+
+\node[font=\small\bfseries, text=violet!80!black, anchor=south, yshift=0.1cm] at (sim_group.north) {Simulation};
+\node[iplabel, anchor=north] at ($(sim_group.south) + (1cm, -0.1cm)$) {:80};
+
+% Bus Line 
+\coordinate (sim_bus_top) at ($(sim_group.north west) + (0.8cm, -0.5cm)$);
+\coordinate (sim_bus_bottom) at ($(sim_group.south west) + (0.8cm, 0.4cm)$); 
+\draw[line] (sim_bus_top) -- (sim_bus_bottom);
+
+% Simulation Nodes: Styles are set implicitly via otnode (purple zone)
+\node[otnode, anchor=west] (feed1) at ($(sim_bus_top) + (1.5cm, -0.8cm)$) {Feed 1};
+\node[otnode, anchor=west, below=0.5cm of feed1] (feed2) {Feed 2};
+\node[otnode, anchor=west, below=0.5cm of feed2] (purge) {Purge};
+\node[otnode, anchor=west, below=0.5cm of purge] (product) {Product};
+\node[otnode, anchor=west, below=0.5cm of product] (tank) {Tank};
+\node[otnode, anchor=west, below=0.5cm of tank] (analyzer) {Analyzer};
+
+% Connect to bus
+\foreach \n/\label in {feed1/.10, feed2/.11, purge/.12, product/.13, tank/.14, analyzer/.15} {
+    \draw[line] (\n.west) -- node[iplabel, pos=0.7, anchor=south] {\label} (\n.west -| sim_bus_top);
+}
+
+% Connect OT Hub UP to the bus
+\draw[line] (ot_hub.north) |- (sim_bus_bottom);
+
+\end{tikzpicture}

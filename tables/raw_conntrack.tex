@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\scriptsize
+\caption{Preview of raw conntrack events (anonymized).}
+\label{tab:raw_conntrack_preview}
+\makebox[\textwidth][c]{%
+\begin{tabular}{llllllll}
+\toprule
+Event & Conn. ID & Timestamp & L4 & Source IP & Destination IP & Orig. Bytes & Reply Bytes \\
+\midrule
+
+
+LIST & 105672107 & 2026-03-19 13:54:39.559 & 6 & 10.20.109.217 & 10.20.37.127 & 422 & 1421 \\
+LIST & 3843433871 & 2026-03-19 13:54:39.559 & 6 & 10.20.109.217 & 10.20.235.187 & 422 & 1551 \\
+DELETE & 4122098797 & 2026-03-19 13:54:39.582 &  & nan & nan & 422 & 1048 \\
+ADD & 4122098797 & 2026-03-19 13:54:39.582 & 6 & 10.20.109.217 & 10.20.146.19 & 0 & 0 \\
+ADD & 1297319782 & 2026-03-19 13:54:39.638 & 6 & 10.20.109.217 & 10.20.10.241 & 0 & 0 \\
+DELETE & 923955930 & 2026-03-19 13:54:40.343 &  & nan & nan & 422 & 1666 \\
+DROP & 28924 & 2026-03-19 13:54:56.343 & 17 & 10.20.85.60 & 10.20.144.114 & 64 &  \\
+DROP & 0 & 2026-03-19 13:54:56.343 & 6 & 10.20.3.179 & 10.20.199.224 & 40 &  \\
+UPDATE & 711927862 & 2026-03-19 14:04:39.553 &  & nan & nan & 462 & 1492 \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}

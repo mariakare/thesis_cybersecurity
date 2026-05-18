@@ -1,0 +1,50 @@
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{width=\textwidth}
+\begin{tikzpicture}[
+    node distance=1.15cm,
+    every node/.style={font=\small},
+    layer/.style={
+        draw,
+        rounded corners,
+        align=center,
+        minimum width=2.0cm,
+        minimum height=0.9cm
+    },
+    reg/.style={
+        draw,
+        dashed,
+        rounded corners,
+        align=center,
+        minimum width=1.8cm,
+        minimum height=0.75cm,
+        font=\footnotesize
+    },
+    arrow/.style={-{Latex[length=2mm]}, thick}
+]
+
+\node[layer] (input) {Input\\$N$ features};
+\node[reg, right=of input] (noise) {Gaussian\\noise};
+\node[layer, right=of noise] (enc1) {Dense 36\\ReLU};
+\node[reg, right=of enc1] (drop1) {Dropout};
+\node[layer, right=of drop1] (bottleneck) {Dense 6\\ReLU\\Bottleneck};
+\node[reg, right=of bottleneck] (drop2) {Dropout};
+\node[layer, right=of drop2] (dec1) {Dense 36\\ReLU};
+\node[layer, right=of dec1] (output) {Output\\$N$ features\\tanh};
+
+\draw[arrow] (input) -- (noise);
+\draw[arrow] (noise) -- (enc1);
+\draw[arrow] (enc1) -- (drop1);
+\draw[arrow] (drop1) -- (bottleneck);
+\draw[arrow] (bottleneck) -- (drop2);
+\draw[arrow] (drop2) -- (dec1);
+\draw[arrow] (dec1) -- (output);
+
+\node[above=0.25cm of enc1] {\textbf{Encoder}};
+\node[above=0.25cm of dec1] {\textbf{Decoder}};
+
+\end{tikzpicture}
+\end{adjustbox}
+\caption{CPS-GUARD-style autoencoder architecture used for reconstruction-based anomaly detection. The \(N\)-dimensional feature vector is regularized using Gaussian noise, compressed into a lower-dimensional bottleneck representation, and then reconstructed at the output. Dropout is applied after the first two hidden layers during training.}
+\label{fig:cpsguard_autoencoder_architecture}
+\end{figure}

@@ -1,0 +1,65 @@
+\chapter{Introduction}
+
+% on top of everything, the difficulty of compareing models in literature makes it hard to know what is really useful for my application
+% talk about the pipeline starting from conntrack data
+Modern industrial environments are becoming increasingly connected. Systems that were once largely isolated now communicate with enterprise networks, remote services, cloud platforms and security appliances~\cite{jeffrey_hybrid_2024}. This integration improves visibility, automation and operational efficiency, but it also increases the exposure of Operational Technology (OT) environments to cyber threats~\cite{behdadnia_early-stage_2025}. Unlike traditional IT systems, attacks against OT environments may have consequences beyond data loss, including disruption of physical processes, equipment damage and safety risks~\cite{wang_guardians_2026, jeffrey_hybrid_2024}.
+
+These characteristics make security monitoring in OT environments both important and challenging. Industrial networks often contain legacy devices, strict availability requirements and communication patterns that differ strongly between sites~\cite{abshari_survey_2025, jeffrey_hybrid_2024}. As a result, security mechanisms that are common in IT environments cannot always be transferred directly to OT environments~\cite{wang_guardians_2026}. Passive network-based monitoring is therefore an attractive approach, because it can observe communication behavior without modifying the industrial devices themselves~\cite{ortega-fernandez_network_2024}.
+
+Anomaly detection is a promising technique in this context, since it can learn a reference of normal behavior and identify deviations from that reference. This is especially relevant when labeled attack data is limited or when attacks are unknown beforehand~\cite{jeffrey_hybrid_2024, meira_performance_2020}. However, the practical value of anomaly detection depends strongly on the data source, the feature representation, the thresholding strategy and the evaluation setting~\cite{fung_perspectives_2022}. Models that perform well on clean or controlled datasets may behave differently when applied to noisy operational data from real environments~\cite{catillo_cps-guard_2023, moriano_adaptive_2025}.
+
+This thesis was carried out in collaboration with AXS Guard, whose security appliances are deployed at the network edge of customer environments. Because these appliances already operate as routers and firewalls, they naturally observe the connections passing through them. This makes Linux connection tracking metadata, or conntrack metadata, a practical data source for anomaly detection, as it provides lightweight summaries of observed network connections without requiring changes to OT devices or inspection of packet payloads. The choice for conntrack metadata is therefore motivated not only by its technical content, but also by its deployability in real customer environments.
+
+In this thesis, this metadata is transformed into window-based feature vectors and used to evaluate whether existing unsupervised anomaly detection models can detect early-stage reconnaissance behavior. Reconnaissance is considered because it often precedes more intrusive attack phases, such as exploitation or lateral movement~\cite{behdadnia_early-stage_2025}. During this phase, an attacker tries to discover active hosts, reachable services or communication paths, which can leave traces in network metadata even before the physical process is affected~\cite{zaidy_comprehensive_2025, cabana_detecting_2019}.
+
+The goal of this thesis is not to design a new anomaly detection algorithm, but to adapt and evaluate existing unsupervised models as part of a consistent detection pipeline. The pipeline covers the transformation of raw conntrack events into flow records, the aggregation of these records into time windows, the extraction and selection of features, model training on benign data, threshold selection and evaluation on operational data with simulated reconnaissance attacks.
+
+The central research question of this thesis is formulated as follows:
+
+
+
+\begin{center}
+\setlength{\fboxsep}{8pt}
+\fbox{%
+\begin{minipage}{0.9\textwidth}
+% \centering
+\textit{How can existing unsupervised anomaly detection models be adapted, implemented as a pipeline, and evaluated using Linux connection tracking metadata to detect early-stage reconnaissance in noisy, real-world OT environments?}
+\end{minipage}
+}
+\end{center}
+
+
+
+To answer this question, a pipeline is constructed where the following steps are carried out:
+
+\begin{itemize}
+    \item reconstruct raw Linux conntrack events into connection-level records that can be used for network traffic analysis;
+
+    \item aggregate the reconstructed connections into time-based windows per source host, so that each window can be represented as a feature vector;
+
+    \item define and select conntrack-derived features that capture behaviours relevant to reconnaissance, such as destination spread, short-lived communication and asymmetric or failed connections;
+
+    \item simulate early-stage reconnaissance scenarios and inject them into noisy operational OT traffic to create an evaluation setting;
+
+    \item adapt existing unsupervised anomaly detection models, including k-NN, K-Means and autoencoder-based approaches, to the resulting feature representation;
+
+    \item compare the models under a consistent experimental pipeline, considering the effect of design choices such as window length, feature set, threshold selection and evaluation metric.
+\end{itemize}
+
+
+The remainder of this thesis is structured as follows. Chapter~\ref{ch:related-work} discusses related work on OT security, anomaly detection, reconnaissance, unsupervised models and evaluation metrics. Chapter~\ref{ch:dataset} describes the data source, preprocessing steps and construction of the experimental datasets. Chapter~\ref{ch:methodology} presents the detection pipeline and experimental setup. Chapter~\ref{ch:results} reports and discusses the results. Finally, Chapter~\ref{ch:conclusion} summarizes the main findings, limitations and future work.
+
+% This main question is divided into the following subquestions:
+
+% \begin{itemize}
+%     \item What information can be extracted from Linux connection tracking metadata, and how can it be represented in a form suitable for anomaly detection?
+
+%     \item Why is noisy operational OT data an important evaluation setting for anomaly detection models?
+
+%     \item Why is early-stage reconnaissance a relevant target for OT anomaly detection, and how can it be reflected in network metadata?
+
+%     \item How do existing unsupervised anomaly detection models, such as k-NN, K-Means and autoencoder-based approaches, perform when adapted to conntrack-derived OT features?
+
+%     \item How can these models be compared under a consistent pipeline, and how do design choices such as feature selection, window length, thresholding and evaluation metrics affect the interpretation of their performance?
+% \end{itemize}
+

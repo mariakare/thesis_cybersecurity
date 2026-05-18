@@ -1,0 +1,96 @@
+
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{adjustbox}{center, width=1.1\textwidth}
+%     \begin{tikzpicture}[
+%         stage/.style={
+%             rectangle,
+%             rounded corners=2pt,
+%             draw=black!60,
+%             minimum width=2.15cm,
+%             minimum height=0.75cm,
+%             align=center,
+%             font=\footnotesize,
+%             text width=1.5cm
+%         },
+%         early/.style={stage, fill=green!18},
+%         middle/.style={stage, fill=blue!10},
+%         late/.style={stage, fill=red!18},
+%         arrow/.style={-{Latex[length=1.8mm]}, thick, draw=black!60}
+%     ]
+
+%     \node[early] (recon) {1. Reconnaissance};
+%     \node[middle, right=0.25cm of recon] (weapon) {2. Weaponization};
+%     \node[middle, right=0.25cm of weapon] (delivery) {3. Delivery};
+%     \node[middle, right=0.25cm of delivery] (exploit) {4. Exploitation};
+%     \node[middle, right=0.25cm of exploit] (install) {5. Installation};
+%     \node[middle, right=0.25cm of install] (c2) {6. Command\\and Control};
+%     \node[late, right=0.25cm of c2] (objectives) {7. Action on\\Objectives};
+
+%     \draw[arrow] (recon) -- (weapon);
+%     \draw[arrow] (weapon) -- (delivery);
+%     \draw[arrow] (delivery) -- (exploit);
+%     \draw[arrow] (exploit) -- (install);
+%     \draw[arrow] (install) -- (c2);
+%     \draw[arrow] (c2) -- (objectives);
+
+%     \node[above=0.18cm of recon, font=\footnotesize\bfseries, text=green!45!black]
+%         {Focus of this thesis};
+
+%     \node[below=0.18cm of objectives, font=\footnotesize\bfseries, text=red!60!black]
+%         {Physical impact!};
+
+%     \end{tikzpicture}
+%     \end{adjustbox}
+%     \caption{Cyber Kill Chain stages and the focus of this thesis on early-stage reconnaissance activity.}
+%     \label{fig:cyber_kill_chain}
+% \end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \makebox[\textwidth][c]{%
+    \begin{adjustbox}{width=1.3\textwidth}
+    \begin{tikzpicture}[
+        stage/.style={
+            rectangle,
+            rounded corners=2pt,
+            draw=black!60,
+            minimum width=2.15cm,
+            minimum height=0.75cm,
+            align=center,
+            font=\footnotesize,
+            text width=2.0cm
+        },
+        early/.style={stage, fill=green!18},
+        middle/.style={stage, fill=blue!10},
+        late/.style={stage, fill=red!18},
+        arrow/.style={-{Latex[length=1.8mm]}, thick, draw=black!60}
+    ]
+
+    \node[early] (recon) {1. Reconnaissance};
+    \node[middle, right=0.25cm of recon] (weapon) {2. Weaponization};
+    \node[middle, right=0.25cm of weapon] (delivery) {3. Delivery};
+    \node[middle, right=0.25cm of delivery] (exploit) {4. Exploitation};
+    \node[middle, right=0.25cm of exploit] (install) {5. Installation};
+    \node[middle, right=0.25cm of install] (c2) {6. Command\\and Control};
+    \node[late, right=0.25cm of c2] (objectives) {7. Action on\\Objectives};
+
+    \draw[arrow] (recon) -- (weapon);
+    \draw[arrow] (weapon) -- (delivery);
+    \draw[arrow] (delivery) -- (exploit);
+    \draw[arrow] (exploit) -- (install);
+    \draw[arrow] (install) -- (c2);
+    \draw[arrow] (c2) -- (objectives);
+
+    \node[above=0.18cm of recon, font=\footnotesize\bfseries, text=green!45!black]
+        {Focus of this thesis};
+
+    \node[below=0.18cm of objectives, font=\footnotesize\bfseries, text=red!60!black]
+        {Physical/process impact};
+
+    \end{tikzpicture}
+    \end{adjustbox}%
+    }
+    \caption{Cyber Kill Chain stages.}
+    \label{fig:cyber_kill_chain}
+\end{figure}
