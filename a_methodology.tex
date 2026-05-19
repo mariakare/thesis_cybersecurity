@@ -3,7 +3,6 @@
 This chapter describes how the datasets used in the experiments were constructed. The process starts from raw Linux conntrack metadata collected from real OT environments. These binary event files are reconstructed into unidirectional flow records, and split chronologically into training, validation, and test periods. Attack data is simulated and remapped to match the companies' data context. The resulting output is therefore a set of flow-level datasets that serve as input to the feature extraction and detection methodology described in Chapter~\ref{ch:detection_methodology}.
 
 
-% \textcolor{blue}{TOO LONG? SHOULD I DEVIDE THIS INTO TWO CHAPTERS?? split up into set-up/tools and actual pipeline? Or just split it into two as it is so it doesn't feel like I am repeating myself?}
 
 \section{Data Source and Scope}
 
@@ -15,7 +14,7 @@ This thesis was carried out in collaboration with AXS Guard, a Belgian cybersecu
 
 The metadata was collected from AXS Guard appliances deployed at the network edge, where they operate as routers and firewalls. This deployment context is important for the design of the dataset. The appliances must perform their primary networking and security functions continuously, while operating under hardware constraints that depend on the specific model. Some appliances have limited memory resources, starting from 1 GB on the least performant models, and going up to 12 GB or 16 GB of memory~\cite{axs_guard_product_2026}. These constraints motivate the use of lightweight network metadata rather than packet payloads or host-level process information.
 
-For this reason, the dataset is based on Linux conntrack metadata. Conntrack is the connection-tracking subsystem of the Linux kernel and is part of the Netfilter framework. It maintains metadata about observed network flows, such as source and destination addresses, ports, protocol, packet and byte counters, timestamps, and connection state. Conntrack is commonly used by firewalling and NAT systems such as iptables and nftables, but in this thesis it is used only as a source of lightweight network-flow metadata for anomaly detection~\cite{neira2006conntrack,netfilter_nftables_2025}. Since conntrack is already natively integrated into the Linux networking stack, it allows the system to passively extract useful network visibility without requiring complex network reconfiguration or additional heavyweight monitoring components.
+For this reason, the dataset is based on Linux conntrack metadata. Conntrack is the connection-tracking subsystem of the Linux kernel and is part of the Netfilter framework. It collects metadata about observed network flows, such as source and destination addresses, ports, protocol, packet and byte counters, timestamps, and connection state. Conntrack is commonly used by firewalling and NAT systems such as iptables and nftables, but in this thesis it is used only as a source of lightweight network-flow metadata for anomaly detection~\cite{neira2006conntrack,netfilter_nftables_2025}. Since conntrack is already natively integrated into the Linux networking stack, it allows the system to passively extract useful network visibility without requiring complex network reconfiguration or additional heavyweight monitoring components.
 
 The dataset should therefore be interpreted as network connection metadata observed at the monitored subnet or gateway. It does not provide a complete view of all communication in the customer organization, but only of the traffic visible from the selected observation point. It also does not contain packet payloads, sensor readings, actuator states, PLC register values, or other process-level variables. Instead, the analysis in this thesis is based on metadata describing communication patterns between endpoints.
 
@@ -27,20 +26,45 @@ The dataset should therefore be interpreted as network connection metadata obser
 The datasets used come from real OT environments of the collaborating companies. Because these environments are operationally sensitive, several details are intentionally omitted or anonymized. This includes the names of the companies, exact network topologies, device roles, raw IP addresses, and any information that could reveal the structure or operation of the industrial networks. Where examples are shown, synthetic or anonymized values are used.
 
 
-For safety and operational reasons, reconnaissance attacks were not executed directly against the OT environments. Even what looks like harmless scanning activity can disrupt fragile or legacy industrial devices, trigger alerts, or interfere with normal operations. Instead, reconnaissance behavior was simulated in a controlled environment and injected into the real benign traffic. This approach allows the evaluation of attack detection methods while avoiding unnecessary risk to customer systems.
+For safety and operational reasons, reconnaissance attacks were not executed directly against the OT environments. Even harmless scanning activity can disrupt fragile or legacy industrial devices, trigger alerts, or interfere with normal operations. Instead, reconnaissance behavior was simulated in a controlled environment and injected into the real benign traffic. This approach allows the evaluation of attack detection methods while avoiding unnecessary risk to customer systems.
 % \textcolor{red}{add dummy data example}
 \subsection{Data Scope}
-The OT dataset consists of metadata collected from two real environments. The collected traffic represents normal operational communication observed during the measurement periods.\textcolor{red}{ No confirmed "attacks" were present in the collected company data,} therefore the original OT traffic is treated as benign. The data was collected during the months of March and April.
-\textcolor{red}{talk about anomalies in training data }
+The OT dataset consists of metadata from two real environments, which was collected during the months of March and April of 2026. The collected traffic represents normal operational communication observed during the measurement periods. No confirmed "attacks" were present in the collected company data, however some abnormalities may be present due to noise or misconfigurations. 
+
+Figure~\ref{fig:customer1_baseline_weeks} shows two weeks of traffic from one of the companies, represented as the number of connections per 10-minute interval. In week 16, the traffic pattern is consistent with what would be expected from an OT environment. The number of connections follows a periodic structure, with higher and more spiky activity during working hours and lower activity after hours, during the weekend. In week 15, however, the traffic pattern is more irregular. Between 2026-04-10 and 2026-04-13, there is a sudden higher but constant number of connections. Internal inspection linked this irregularity mainly to one source host, which generated many additional connections and changed its usual destination pattern by communicating with other servers on port 80. This bahavior shows that OT traffic, while benign, can still contain unusual patterns.
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{subfigure}{0.95\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/customer1_week15.pdf}
+        \caption{Baseline traffic for customer 1, week 15.}
+        \label{fig:customer1_week15}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}{0.95\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/customer1_week16.pdf}
+        \caption{Baseline traffic for customer 1, week 16.}
+        \label{fig:customer1_week16}
+    \end{subfigure}
+
+    \caption{Baseline network traffic for customer 1 across two selected weeks.}
+    \label{fig:customer1_baseline_weeks}
+\end{figure}
+
+
 
 \section{Data Pre-processing}
-\textcolor{blue}{is this too much information?? Too many tables?}
 
 \subsection{Conntrack Ingestion}
 
-\textcolor{blue}{credit Enrique for this? how?}
+The raw conntrack data was logged as compressed binary event files. Each file contained a sequence of conntrack events rather than already finalized flow records. Therefore, for the first preprocessing step, the files were decompressed and and parsed into structured records.
 
-The raw conntrack data was logged as compressed binary event files. Each file contains a sequence of conntrack events rather than already finalized flow records. Therefore, the first preprocessing step was to decompress the files and parse the binary event stream into structured records.
 
 \input{tables/raw_conntrack}
 
@@ -48,7 +72,7 @@ Table~\ref{tab:raw_conntrack_preview} shows a small preview of the raw event str
 connections using the available packet metadata. \texttt{UPDATE}  events provide intermediate cumulative byte and packet counters
 for an active connection, while \texttt{DELETE} events finalize connections using the end timestamp and final byte and packet counters. \texttt{LIST}, \texttt{EMPTY}, \texttt{HEADER}, and \texttt{DROP} events are skipped because they do not describe a connection state transition that can be mapped to a reconstructed flow record.  \texttt{HEADER} events contain stream-level metadata, \texttt{EMPTY} events contain no connection data, \texttt{LIST} events are used for listing existing conntrack entries, and \texttt{DROP} events indicate records that were discarded.
 
-The resulting finalized connections, initially produced in connection-completion order, are converted into unidirectional flow records and sorted chronologically by start time in order to preserve information about communication directionality. Important characteristics of reconnaissance are not just the existence of a connection, but also by which host initiated the communication, which hosts or ports were targeted, and whether the probing activity received responses. Table~\ref{tab:sorted_unidirectional} provides an example of flow produced by this preprocessing step.
+The resulting finalized connections, initially produced in connection-completion order, are converted into unidirectional flow records and sorted chronologically by start time in order to preserve information about communication directionality. Important characteristics of reconnaissance are not just the existence of a connection, but also which host initiated the communication, which hosts or ports were targeted, and whether the probing activity received responses. Table~\ref{tab:sorted_unidirectional} provides an example of flow produced by this preprocessing step.
 
 \input{tables/sorted_unidirectional}
 
@@ -67,20 +91,23 @@ The split was also performed before attack injection, as described in Section~\r
 
 
 \begin{figure}[htbp]
-    
     \centering
+    
     % This automatically scales the diagram to fit the width of your text block
     \resizebox{\textwidth}{!}{%
-        \label{fig:env_diagram}
+        
         \input{diagram.tex}%
     }
     \caption{GRFICSv3 Network Diagram}
+    \label{fig:env_diagram}
 \end{figure}
+
+
 Due to the safety and operational concerns discussed in~\ref{sec:data_lim_conf}, the reconnaissance attacks were not executed against the companies' OT environments. Instead, they were simulated in a virtual OT lab based on the open-source GRFICSv3 environment~\cite{grficsv3_2026}. GRFICSv3 is a containerized ICS/OT cyber-physical security lab that simulates an industrial chemical plant.
 
 The attacks were run from the Kali attacker container (\texttt{192.168.90.6}) which, as shown in Figure~\ref{fig:env_diagram}, is located in the IT network. This represents the scenario where an attacker has obtained control over an IT-side host and performs reconnaissance towards the OT environment. The router/firewall container acts as the observation point, collecting all conntrack metadata form the crossing traffic
 
-\textcolor{red}{the first stage of the Cyber Kill Chain (CKC)\cite{Yadav_2015}}. 
+
 
 \subsection{Attack Scenarios}
 The simulated attacks were designed to represent different forms of reconnaissance. The goal was to generate traffic patterns associated with host discovery, port discovery, service probing, and low-rate scanning. 
@@ -138,7 +165,7 @@ The scenarios vary in scan intensity and target scope. Some scans target the ful
     }
 \end{table}
 
-For scanning nmap was selected because it is a widely used network scanning tool for host discovery, port scanning, and service identification, making it suitable for generating controlled reconnaissance traffic with configurable scan intensity and timing~\cite{nmap_nmap_nodate}. Most port discovery scenarios use TCP SYN scanning (\texttt{-sS}) with host discovery disabled (\texttt{-Pn}), so Nmap proceeds directly to probing the specified targets. The timing templates range from very aggressive (\texttt{-T5}) to extremely slow (\texttt{-T0}), allowing the dataset to include both faster and slower reconnaissance behavior. The low-and-slow scenario is included as an Advanced Persistent Threat (APT) inspired reconnaissance pattern, where probing activity is spread over a longer and interrupted period rather than concentrated in a short scan burst.
+For scanning \texttt{nmap} was selected because it is a widely used network scanning tool for host discovery, port scanning, and service identification, making it suitable for generating controlled reconnaissance traffic with configurable scan intensity and timing~\cite{nmap_nmap_nodate}. Most port discovery scenarios use TCP SYN scanning (\texttt{-sS}) with host discovery disabled (\texttt{-Pn}), so nmap proceeds directly to probing the specified targets. The timing templates range from very aggressive (\texttt{-T5}) to extremely slow (\texttt{-T0}), allowing the dataset to include both faster and slower reconnaissance behavior. The low-and-slow scenario is included as an Advanced Persistent Threat (APT) inspired reconnaissance pattern, where probing activity is spread over a longer and interrupted period rather than concentrated in a short scan burst.
 
 The selected port sets include common administrative and web ports such as
 \texttt{22}, \texttt{80}, and \texttt{443}. They also include OT-relevant
@@ -151,22 +178,22 @@ Additional scenarios include host discovery (\texttt {-sn}), which identifies re
 
 
 \subsection{Attack Injection}
-After executing the described reconnaissance attack scenarios, the adversarial traffic had to be isolated from the benign simulation traffic. This isolation was
+After executing the described reconnaissance attack scenarios, the adversarial traffic was isolated from the benign simulation traffic. This isolation was
 based on the recorded attack timelines, the known attacker address, and the target scope of each scenario. Conntrack records were flagged as malign when their timestamps fell within the corresponding attack interval and their endpoints matched the expected bidirectional attacker-to-target communication. 
 
-The isolated attack traces could not be directly inserted into the company data, since much of their metadata would not match. Specifically, the IP addresses and the timestamps from the virtual OT lab had to be modified in order to blend in. The IP remapping was deterministic, ensuring that attacker-side and target-side addresses were projected consistently onto IT-side and OT-side
+The isolated attack traces could not be directly inserted into the company data, since much of their metadata would not match. Specifically, the IP addresses and the timestamps from the virtual OT lab was modified in order to blend in. The IP remapping was deterministic, ensuring that attacker-side and target-side addresses were projected consistently onto IT-side and OT-side
 company ranges, respectively. This preserves the intended attack direction of an IT host performing reconnaissance towards OT targets. The timestamps of the isolated attack traces were also shifted into the relevant periods of the company data. The relative timing within each attack was preserved, so that scan bursts, idle gaps, and low-and-slow patterns remained intact after injection.
 
-After data remapping, the malicious data could be successfully injected into the validation and testing splits. Labels were assigned during this integration step. Original company traffic was treated as benign, while the injected reconnaissance records were labeled as malign traffic. The different attack names were also retained as metadata allowing us to later evaluate our results at a per attack scenario. 
+After data remapping, the malicious data could be injected into the validation and testing splits. Labels were assigned during this integration step. Original company traffic was treated as benign, while the injected reconnaissance records were labeled as malign traffic. The different attack names were also retained as metadata allowing for later evaluation of results at a per attack scenario. 
 
-It should be noted that while this is a good approximation of how reconnaissance attacks will look in the different customer environments, it does not fully reproduce all effects of an attack executed directly inside the companies' networks, such as device-specific responses, firewall behavior, or operational side effects.
+It should be noted that while the injected traffic provides a useful approximation of how reconnaissance attacks may appear in the different customer environments, not all effects of an attack executed directly inside the companies' networks are reproduced, such as device-specific responses, firewall behavior, or operational side effects.
 
 \chapter{Detection Methodology}
 \label{ch:detection_methodology}
 
 % \section{Feature Engineering}
 \section{Windowing}
-The split, sorted and unidirectional labeled conntrack flows cannot be used directly for model training. Instead, they were aggregated into features representing flow properties over a fixed-length time windows in order to describe the communication behavior of each source host over time. 
+The split, sorted and unidirectional labeled conntrack flows could not be used directly for model training. Instead, they were aggregated into features representing flow properties over a fixed-length time windows in order to describe the communication behavior of each source host over time. 
 
 
 Each model input is defined by a source IP address, a timestamp and a window length. In other words, all flows related to the same source host within that same time window are aggregated into one feature vector. For example, when using a 60-minute window, all flows associated with some source host \texttt{10.20.109.217} from 10:00 to 11:00 are combined into one vector containing features such as the number of contacted destination IPs, destination ports, protocol distribution, and packet or byte statistics. An example can be seen in Table~\ref{tab:feature_vector_preview}.
@@ -197,7 +224,7 @@ Each model input is defined by a source IP address, a timestamp and a window len
 \end{table}
 
 
-A Prior work has shown that host‑level connection patterns are effective for traffic classification and anomaly detection, even when payloads are unavailable, traffic is unlabeled, or unidirectional\cite{dewaele_unsupervised_2010}. Similarly, as discussed \textcolor{red}{[IN LITERATURE  \cite{keshavamurthy_early_2023}]}, scanning behavior is usually visible as a change in the communication pattern of a source host (e.g. probing more ports), hence this kind of representation is highly suitable for reconnaissance. 
+Prior work has shown that host‑level connection patterns are effective for traffic classification and anomaly detection, even when payloads are unavailable, traffic is unlabeled, or unidirectional\cite{dewaele_unsupervised_2010}. Similarly, as discussed in Section~\ref{sec:early_stage_detection}, reconnaissance behaviour can leave observable traces in network communication, such as connections to many destinations, probes to many ports, short-lived TCP flows or failed connection attempts. This makes a source-host window representation suitable for detecting reconnaissance activity. 
 
 Feature extraction was performed on training, validation, and test splits for four different window sizes: \SI{60}{s}, \SI{300}{s}, \SI{3600}{s}, and \SI{18000}{s}, corresponding to one minute, five minutes, one hour and five hours respectively. Using multiple window sizes makes it possible to compare how detection performance changes when short bursts and longer low-rate reconnaissance activity are aggregated at different temporal resolutions.
 
@@ -207,7 +234,7 @@ Feature extraction was performed on training, validation, and test splits for fo
 \label{sec:list_of_feat}
 
 
-As discussed in \textcolor{red}{[the Related Work section]}, reconnaissance is an early-stage attack activity aimed at discovering reachable hosts, open ports, exposed services, and network structure. In network-flow metadata, this behaviour is expected to appear as a change in how a source host communicates. A scanning host may contact more destinations than usual, probe more destination ports, generate many short or low-volume connections, and receive fewer replies when targets are inactiveor closed. A list of features was chosen as a representation of this type of source behavior during the specified time window, and are displayed in Table~\ref{tab:feature_groups}. 
+As discussed in Section~\ref{sec:early_stage_detection}, reconnaissance is an early-stage attack activity aimed at discovering reachable hosts, open ports, exposed services, and network structure. In network-flow metadata, this behaviour is expected to appear as a change in how a source host communicates. A scanning host may contact more destinations than usual, probe more destination ports, generate many short or low-volume connections, and receive fewer replies when targets are inactive or closed. A list of features was chosen as a representation of this type of source behavior during the specified time window, and are displayed in Table~\ref{tab:feature_groups}. A more detailed explanation of each feature can be found in Appendix~\ref{app:feature_descriptions}.
 
 
 
@@ -282,8 +309,6 @@ Temporal change
 \renewcommand{\arraystretch}{1.0}
 \end{table}
 
-\textcolor{blue}{should i bullet point these? or subsection them?}
-
 The \textbf{window metadata} column identifies the source host and corresponding time window as supported by~\cite{dewaele_unsupervised_2010}.
 
 \textbf{Volume features} describe the amount of communication associated with a source host. They include \feat{flow\_count}, \feat{total\_bytes}, \feat{total\_packets}, \feat{sent\_bytes}, \feat{sent\_packets}, \feat{received\_bytes}, and \feat{received\_packets}. These features capture whether a host becomes more active than usual and whether the activity is mainly outgoing, incoming, or
@@ -305,28 +330,28 @@ H(X) = - \sum_{i=1}^{m} p(v_i)\log_2 p(v_i),
 \]
 where $p(v_i)$ is the relative frequency of value $v_i$ in the considered source-host window, and $m$ is the number of distinct observed values. For example, \feat{port\_dst\_entropy} is computed from the distribution of destination ports contacted by a source host in a window, while \feat{ip\_dst\_entropy} is computed from the distribution of contacted destination IP addresses. A host that repeatedly communicates with one service has lower destination-port entropy than a host whose traffic is spread across many ports, which can indicate scanning behavior. Cai et al. uses these exact features in their proposed ADAM scheme, which makes up one of the tested models in this thesis as discussed in Section~\ref{sec:ADAM}.
 
-Finally, the \textbf{temporal change features} describe how specific behavioral features evolve across consecutive windows. The \texttt{\_delta1} features measure the change relative to the previous window for the same source host, while the \texttt{\_mean3} features compute a short rolling average over the current and two previous windows.  The three-window average provides limited temporal smoothing without aggregating behavior over too long a period. These features are included because slow reconnaissance may not produce a strong anomaly in a single isolated window, but may become more visible over time~\cite{ring_detection_2018}.
+Finally, the \textbf{temporal change features} describe how specific behavioral features evolve across consecutive windows. The \texttt{\_delta1} features measure the change relative to the previous window for the same source host, while the \texttt{\_mean3} features compute a short rolling average over the current and two previous windows. For the first observed window of each source host, no previous window is available; therefore, the corresponding \texttt{\_delta1} value is set to zero and the \texttt{\_mean3} value is equal to the current window value. For the second window, \texttt{\_mean3} is computed over the first two available windows, and from the third window onward it is computed over the current and two previous windows. The three-window average provides limited temporal smoothing without aggregating behavior over too long a period. These features are included because slow reconnaissance may not produce a strong anomaly in a single isolated window, but may become more visible over time~\cite{ring_detection_2018}.
 
-A more detailed explanation of each feature can be found in Appendix~\ref{app:feature_descriptions}.
 
 \subsection{Feature Sets}
 
 
-
 Feature sets were constructed using an iterative selection process, by comparing the defined features from Section~\ref{sec:list_of_feat} of the benign and malign data. For each feature, benign and malign validation windows were compared using their mean and median values. For each feature $f$, the benign mean $\mu_b$, malicious mean $\mu_m$, benign standard deviation $\sigma_b$, and malicious standard deviation $\sigma_m$ were computed. To rank features in a scale-independent way, the difference between the benign and malicious means was normalized by the pooled standard deviation, resulting in a Cohen's d  standardized mean difference~\cite{lakens_calculating_2013}.
+
+The pooled standard deviation is defined as
 \[
 \sigma_{\mathrm{pooled}} =
 \sqrt{\frac{\sigma_b^2 + \sigma_m^2}{2}},
 \]
 
-resulting in the standardized mean difference
+The standardized mean difference for feature $f$ is then computed as
 
 \[
 \mathrm{SMD}(f) =
 \frac{\mu_m - \mu_b}{\sigma_{\mathrm{pooled}}}.
 \]
 
-Features were ranked by $|\mathrm{SMD}(f)|$, so that features with different numerical scales could be compared fairly and features were ranked highly regardless of whether they increased or decreased during attacks. Median differences were also inspected to make the ranking easier to interpret for possible skewed features. This comparison was repeated for each different time window (\SI{60}{s}, \SI{300}{s}, \SI{3600}{s}, and \SI{18000}{s}) and for each different attack category grouped by intensity (T0/T1, T2, T3/T4/T5). As an indicator, Table~\ref{tab:global_feature_ranking} captures a global ranking of feature importance, combining all of the different window, attack combinations.
+Features were ranked by the absolute value $|\mathrm{SMD}(f)|$, where the vertical bars indicate that only the magnitude of the standardized difference is considered. This allows features with different numerical scales to be compared fairly and ensures that features are ranked highly regardless of whether their values increase or decrease during attacks. Median differences were also inspected to make the ranking easier to interpret for possible skewed features. This comparison was repeated for each different time window (\SI{60}{s}, \SI{300}{s}, \SI{3600}{s}, and \SI{18000}{s}) and for each different attack category grouped by intensity (T0/T1, T2, T3/T4/T5). As an indicator, Table~\ref{tab:global_feature_ranking} captures a global ranking of feature importance, combining all of the different window, attack combinations.
 
 
 
@@ -394,23 +419,24 @@ Rank & Feature & Median |SMD| & Mean |SMD| \\
     \label{fig:selected_feature_boxplots}
 \end{figure}
 
-The ranked summaries of each attack group and window, were used to identify feature families that consistently distinguished reconnaissance from benign traffic. Some of the strongest recurring features were \feat{ip\_dst\_entropy} and \feat{ip\_dst\_entropy\_mean3} representing destination spread, \feat{tcp\_short\_flow\_rate} and \feat{tcp\_short\_flow\_rate\_mean3} representing short-lived TCP scan behavior, and \feat{no\_reply\_packet\_score} and \feat{outbound\_ratio} representing failed or asymmetric communication. Two of these features are illustrated as boxplots in Figure~\ref{fig:selected_feature_boxplots}, visualizing the separation. Based on this information, candidate feature sets were constructed to cover multiple aspects of reconnaissance behavior while limiting redundancy between strongly related features.
+The ranked summaries of each attack group and window were used to identify feature families that consistently distinguished reconnaissance from benign traffic. Some of the strongest recurring features were \feat{ip\_dst\_entropy} and \feat{ip\_dst\_entropy\_mean3} representing destination spread, \feat{tcp\_short\_flow\_rate} and \feat{tcp\_short\_flow\_rate\_mean3} representing short-lived TCP scan behavior, and \feat{no\_reply\_packet\_score} and \feat{outbound\_ratio} representing failed or asymmetric communication. Two of these features are illustrated as boxplots in Figure~\ref{fig:selected_feature_boxplots}, visualizing the separation. Based on this information, candidate feature sets were constructed to cover multiple aspects of reconnaissance behavior while limiting redundancy between strongly related features.
 
-This resulted in three types of feature sets. First, general-purpose sets, combining the strongest non-redundant features. Second, attack specific sets emphasizing particular behavior, such as fast and broad scans, stealthy and slow scans, or horizontal host discovery. The last type, isolated specific signal families, such as entropy-only (ADAM), or asymmetry-only groups to get more information on which underlying reconnaissance behaviors contributed most to detection. It is important to clarify that the test split was not used during this feature-set construction process in order to avoid leakage. The exact feature sets can be observed in~\ref{app:feature_sets}.
+This resulted in three types of feature sets. First, general-purpose sets, combining the strongest non-redundant features. Second, attack specific sets emphasizing particular behavior, such as fast and broad scans, stealthy and slow scans, or horizontal host discovery. The last type, isolated specific signal families, such as entropy-only (ADAM), or asymmetry-only groups to get more information on which underlying reconnaissance behaviors contributed most to detection. It is important to clarify that the test split was not used during this feature-set construction process in order to avoid leakage. The exact feature sets can be observed in Appendix~\ref{app:feature_sets}.
 
 
 \section{Anomaly Detection Models}
 All models in this section are evaluated in a one-class anomaly detection setting. During training, the models do not rely on labeled data as they are only trained on benign windows, learning a reference of what normal traffic in a specific environment looks like and assigning an anomaly score to unseen windows based on their deviation from this benign reference. Ground-truth labels are introduced only after scoring, in order to evaluate performance.
 
 \subsection{k-Nearest Neighbors}
-As discussed in Section [LITERATURE REVIEW], k-Nearest Neighbors (k-NN) is traditionally a supervised learning algorithm, where a new sample is classified based on the labels of its closest neighbors in the training data. However, the same distance-based principle can also be used for one-class anomaly detection.  In that case,the training phase does not involve learning model weights. Instead, the model stores the benign training observations in the selected feature space. During evaluation, each new sample is compared to these stored benign observations using a distance metric. If the sample is close to previously observed normal behavior, it receives a low anomaly score. If it is far from the benign reference set, it receives a high anomaly score. A threshold is then used to decide when this distance is large enough for the window to be considered anomalous.
+\label{sec:knn_method}
+As discussed in Section~\ref{sec:literature_models}, k-Nearest Neighbors (k-NN) is traditionally a supervised learning algorithm, where a new sample is classified based on the labels of its closest neighbors in the training data. However, the same distance-based principle can also be used for one-class anomaly detection. There is no explicit training phase in which model parameters are learned. Instead, the benign training observations are stored as a reference set in the selected feature space. During evaluation, each new sample is compared to these stored benign observations using a distance metric. If the sample is close to previously observed normal behavior, it receives a low anomaly score. If it is far from the benign reference set, it receives a high anomaly score. A threshold is then used to decide when this distance is large enough for the window to be considered anomalous.
 
 This principle is reflected in our implementation. The k-NN model is fitted only on the benign training split for which training data is first sorted chronologically by \texttt{window\_start\_ts} and \texttt{window\_id}. The first 80\% of the sorted benign training data is used to build the nearest-neighbor reference set, while the remaining 20\% is kept aside for threshold calibration. This calibration subset is still benign, but is not used to fit the k-NN model itself. After fitting, the model is applied to the calibration subset to estimate the range of distance scores that can still occur under normal behavior. Different percentile thresholds are then tested based on this benign score distribution.
 
 Features are scaled using \texttt{RobustScaler}~\cite{pedregosa_scikit-learn_nodate}, which is fitted only on the 80\% reference subset and then applied unchanged to the calibration and evaluation data. This scaler centers each feature around its median and scales it according to the interquartile range, meaning the spread between the 25th and 75th percentiles. Robust scaling was chosen because derived features may contain extreme values even in benign traffic, the effect of which is contained with this method. The nearest-neighbor search is implemented using the \texttt{NearestNeighbors} class from \texttt{scikit-learn}~\cite{pedregosa_scikit-learn_nodate}, configured with Euclidean distance. Meira et al. empirically validated the use of standard Euclidean distance as the core distance metric when successfully applying One-Class Nearest Neighbor algorithms to network intrusion detection datasets~\cite{meira_performance_2020}. For each input sample, the distances to the \(k\) nearest benign reference samples is computed, by averaging the score to this \(k\) nearest neighbors.
 \subsubsection{ADAM}
 \label{sec:ADAM}
-An additional k-NN variant was included for evaluation based on the feature representation proposed in ADAM. ADAM combines entropy-based traffic profiling with unsupervised anomaly detection for DDoS mitigation in software-defined cyber-physical systems. Normal traffic is represented using entropy based features over the network and transport layer, and it selects k-NN as the anomaly detection modules because of its balance between time overhead and detection affectiveness~\cite{cai_adam_2023}. In order to evaluate the effectiveness of the ADAM proposed feature set, some experiments were run exclusevily using features form the Entropy group in Table~\ref{tab:feature_groups}.
+An additional k-NN variant was included for evaluation based on the feature representation proposed in ADAM. ADAM combines entropy-based traffic profiling with unsupervised anomaly detection for DDoS mitigation in software-defined cyber-physical systems. Normal traffic is represented using entropy based features over the network and transport layer, and it selects k-NN as the anomaly detection modules because of its balance between time overhead and detection effectiveness~\cite{cai_adam_2023}. In order to evaluate the effectiveness of the ADAM proposed feature set, some experiments were run exclusevily using features form the Entropy group in Table~\ref{tab:feature_groups}.
 
 
 
@@ -419,20 +445,19 @@ The next anomaly detection approach is based on the the CPS-GUARD method, which 
 
 The model is again trained only on benign training windows. The selected input features are first scaled using a preprocessing pipeline consisting of \texttt{RobustScaler} followed by \texttt{MinMaxScaler} with a target range of \([-1,1]\). Robust scaling is used to reduce the influence of extreme feature values, while the min-max scaling step matches the range of the autoencoder output layer, which uses a \texttt{tanh} activation function.
 
-The autoencoder follows a symmetric encoder-decoder structure. Several architectures are evaluated, including the original CPS-GUARD-style \(N\)-36-6-36-\(N\) architecture but also larger or smaller variants, where \(N\) is the number of selected input features. In this notation, \(N\) denotes the number of selected input features. The architecture therefore maps an \(N\)-dimensional input vector to a first hidden layer with 36 neurons, compresses it to a 6-neuron bottleneck representation, expands it again to 36 neurons, and finally reconstructs an \(N\)-dimensional output vector. The hidden layers use ReLU activations, while the output layer uses \texttt{tanh}.The model is trained with mean squared error as reconstruction loss and RMSProp as optimizer. To reduce overfitting to the benign training windows, dropout is applied after the first two hidden layers, as well as Gaussian input noise as a regularization mechanism. A diagram of this model initialized with \(N\)-36-6-36-\(N\) architecture is depicted in Figure~\ref{fig:cpsguard_autoencoder_architecture}
+The autoencoder follows a symmetric encoder-decoder structure. Several architectures are evaluated, including the original CPS-GUARD-style \(N\)-36-6-36-\(N\) architecture but also larger or smaller variants, where \(N\) is the number of selected input features. The architecture therefore maps an \(N\)-dimensional input vector to a first hidden layer with 36 neurons, compresses it to a 6-neuron bottleneck representation, expands it again to 36 neurons, and finally reconstructs an \(N\)-dimensional output vector. The hidden layers use ReLU activations, while the output layer uses \texttt{tanh}.The model is trained with mean squared error as reconstruction loss and RMSProp as optimizer. To reduce overfitting to the benign training windows, dropout is applied after the first two hidden layers, as well as Gaussian input noise as a regularization mechanism. A diagram of this model initialized with \(N\)-36-6-36-\(N\) architecture is depicted in Figure~\ref{fig:cpsguard_autoencoder_architecture}.
 
 \input{figures/model}
 
-For threshold selection, the benign training data is divided into an autoencoder training subset and a separate benign threshold-calibration subset, which is excluded from training. After training, the calibration subset is passed through the autoencoder and each calibration window receives a reconstruction error, which represents a range of scores that can still occur at benign inputs. Then Isolation Forest is applied to the calibration subset to separate benign calibration samples from outliers~\cite{catillo_cps-guard_2023}. The reconstruction errors of these two groups are used by the threshold selection procedure to choose a final anomaly threshold. This way, instead of directly selecting a fixed percentile of all benign reconstruction errors, possible outliers in the benign calibration set are filtered out. Different contamination values were tested for this step.
-
+For threshold selection, the benign training data is divided into an autoencoder training subset and a separate benign threshold-calibration subset, which is excluded from training. After training, the calibration subset is passed through the autoencoder and each calibration window receives a reconstruction error, which represents a range of scores that can still occur at benign inputs. Then Isolation Forest is applied to the calibration subset to separate benign calibration samples from outliers~\cite{catillo_cps-guard_2023}. The contamination value controls the expected fraction of calibration samples that Isolation Forest treats as outliers. Testing different contamination values therefore changes how aggressively unusual benign calibration windows are removed before the final anomaly threshold is selected. In this way, instead of directly selecting a fixed percentile over all benign reconstruction errors, possible outliers in the benign calibration set can have less influence on the threshold.
 
 
 \subsection{K-means}
 The final model used is based on K-means clustering. K-means is an unsupervised clustering algorithm that partitions the training data into \(k\) clusters by assigning samples to the nearest cluster centroid. Although K-means is primarily a clustering algorithm, it can be adapted to one-class anomaly detection by treating the distance to the nearest benign cluster centroid as an anomaly score~\cite{meira_performance_2020}. Then, during evaluation, a new sample is compared to these centroids. Samples close to one of the benign clusters receive a low anomaly score, while samples far away from all learned centroids receive a high anomaly score.
 
-As repeated for the previous models, the K-means model is fitted only on the benign training split. The training data is first sorted chronologically by \feat{window\_start\_ts} and, \feat{window\_id} of which the first 80\%  is used to fit the K-means model, while the remaining 20\% is kept aside as a benign calibration subset for threshold selection. Features are scaled using \feat{RobustScaler}, which is fitted only on the 80\% model-fitting subset and then applied unchanged to the calibration and evaluation data.
+As repeated for the previous models, the K-means model is fitted only on the benign training split. The training data is first sorted chronologically by \feat{window\_start\_ts} and \feat{window\_id} of which the first 80\%  is used to fit the K-means model, while the remaining 20\% is kept aside as a benign calibration subset for threshold selection. Features are scaled using \feat{RobustScaler}, which is fitted only on the 80\% model-fitting subset and then applied unchanged to the calibration and evaluation data.
 
-After training, each calibration sample is assigned an anomaly score equal to its Euclidean distance to the nearest cluster centroid. The anomaly threshold is then selected as a tested quantile of these benign calibration distances. During evaluation, each validation or test window is scaled using the same scaler and assigned its nearest-centroid distance. A window is classified as anomalous when this distance exceeds the selected threshold.
+After training, each calibration sample is assigned an anomaly score equal to its Euclidean distance to the nearest cluster centroid. As in the k-NN implementation described in Section~\ref{sec:knn_method}, Euclidean distance is used after robust scaling of the selected features.  The anomaly threshold is then selected as a tested quantile of these benign calibration distances. During evaluation, each validation or test window is scaled using the same scaler and assigned its nearest-centroid distance. A window is classified as anomalous when this distance exceeds the selected threshold.
 
 Several values for the number of clusters are tested. Smaller values force the model to represent benign behavior using only a few broad traffic profiles, while larger values allow the model to capture more fine-grained modes of normal behavior. Similarly to the k-NN approach, different threshold quantiles are evaluated to study the trade-off between detecting malicious windows and limiting false positives on benign traffic.  The implementation uses the \texttt{MiniBatchKMeans} class from \texttt{scikit-learn}~\cite{pedregosa_scikit-learn_nodate}.
 
@@ -445,17 +470,17 @@ Several values for the number of clusters are tested. Smaller values force the m
 
 
 \section{Experimental Configuration}
-With the defined models, there are still several design choices that can influence their detection performance. These include the feature set, aggregation window length, anomaly threshold, and model-specific parameters such as the number of nearest neighbors, number of K-means clusters, autoencoder architecture, and Isolation Forest contamination value. In order  to meaningfully select the model that would best perform for reconnaissance detection on conntrack-derived OT traffic, all possible combination of these parameters were explored. 
+With the defined models, there are still several design choices that can influence their detection performance. These include the feature set, aggregation window length, anomaly threshold, and model-specific parameters such as the number of nearest neighbors, number of K-means clusters, autoencoder architecture, and Isolation Forest contamination value. In order  to meaningfully select the model that would best perform for reconnaissance detection on conntrack-derived OT traffic, all possible combinations of these parameters were explored. 
 
-The sweeps are organized around four main dimensions. First, multiple aggregation window sizes are evaluated in order to study how temporal granularity affects detection. Shorter windows may capture short scanning bursts more precisely, while longer windows may smooth traffic behavior and make low-rate reconnaissance activity more visible. Second, several feature sets are tested, ranging from more general reconnaissance based sets, to more case specialized sets as discussed in~\ref{sec:features}. Third, each model is evaluated under multiple threshold settings. For distance-based models (such as K-NN or K-means), thresholds are selected as quantiles of the benign calibration score distribution, and for the autoencoder different Isolation Forest contamination values are tested. Finally, model-specific parameters are varied, such as \(k\) for k-NN, the number of clusters for K-means, and the hidden-layer dimensions of the autoencoder.
+The sweeps are organized around four main dimensions. First, multiple aggregation window sizes are evaluated in order to study how temporal granularity affects detection. Shorter windows may capture short scanning bursts more precisely, while longer windows may smooth traffic behavior and make low-rate reconnaissance activity more visible. Second, several feature sets are tested, ranging from more general reconnaissance based sets, to more case specialized sets as discussed in Section~\ref{sec:features}. Third, each model is evaluated under multiple threshold settings. For distance-based models (such as K-NN or K-means), thresholds are selected as quantiles of the benign calibration score distribution, and for the autoencoder different Isolation Forest contamination values are tested. Finally, model-specific parameters are varied, such as \(k\) for k-NN, the number of clusters for K-means, and the hidden-layer dimensions of the autoencoder.
 
-After exploring all these possibilities, the validation data is used to evalute which configurations show the most promising results. Based on this parameters are modified as suited and certain feature sets are added or removed for the next sweeps. The validation data is also used to select the best model/parameter combinations to be advanced to the testing phase.
+After exploring all these possibilities, the validation data is used to evaluate which configurations show the most promising results. The validation results are then used to refine the next sweeps by adjusting parameter ranges and adding or removing feature sets. Finally, the validation data is used to select the most promising model and parameter combinations for evaluation on the test set.
 
 \section{Evaluation Metrics}
 
 
 
-The models are evaluated using both window-level and range-lavel metrics. Window-level F1 treats each window independently which can be limiting for reconnaissance detection, because an attack is usually not a single isolated window, but an activity that unfolds over a continuous time interval. A detector that raises at least one alarm during such an interval may already be useful from an operational perspective, even if it does not flag every malicious window. Similarly, a model may obtain a good window level F1-score while producing several separate false alarm intervals, which would be less desirable for an operator. This issue is also discussed by Fung et al.~\cite{atluri_perspectives_2022} , who show that point-wise F1 can give a misleading impression of anomaly detection performance in ICS time-series settings, and argue that range-based metrics better capture operational objectives such as reducing false alarms and detecting attack intervals.
+The models are evaluated using both window-level and range-level metrics. Window-level F1 treats each window independently which can be limiting for reconnaissance detection, because an attack is usually not a single isolated window, but an activity that unfolds over a continuous time interval. A detector that raises at least one alarm during such an interval may already be useful from an operational perspective, even if it does not flag every malicious window. Similarly, a model may obtain a good window level F1-score while producing several separate false alarm intervals, which would be less desirable for an operator. This issue is also discussed by Fung et al.~\cite{atluri_perspectives_2022} who show that point-wise F1 can give a misleading impression of anomaly detection performance in ICS time-series settings, and argue that range-based metrics better capture operational objectives such as reducing false alarms and detecting attack intervals.
 
 Window-level precision, recall and F1-score are computed from the number of true positives, false positives and false negatives over all evaluated windows. A true positive (TP) is a window that overlaps with an attack interval and is predicted as anomalous. A false positive (FP) is a benign window that is incorrectly predicted as anomalous, while a false negative (FN) is an attack window that is not detected. These metrics provide a more fine grained view and are useful for comparing how precisely each model identifies anomalous windows. 
 
