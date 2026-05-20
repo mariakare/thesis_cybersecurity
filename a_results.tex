@@ -1,11 +1,110 @@
 \chapter{Results}
-- results and discussion
-- compare models and hyperparameters and feature sets and windows and attacks (easy vs stealthy performance)
-- And how it compares to IT
+% - results and discussion
+% - compare models and hyperparameters and feature sets and windows and attacks (easy vs stealthy performance)
+% - And how it compares to IT
 
 
 % plot correlation between parameters and certain feature sets and window lengthS?
 
 % if an attacker could spend some time in the network they could observe the packets and try to match the metatada of his attack as much as possible
 
+% possible big difference between test and val because of the misconfigurations in validation data.
 
+\section{Evaluation Overview}
+% Briefly explain models, splits, metrics and how to read the results.
+\textcolor{blue}{is this too much repetition?}
+
+
+This chapter presents the experimental results of the evaluated anomaly detection
+models on the constructed reconnaissance detection datasets. The goal of the
+evaluation is to determine to what extent unsupervised models trained only on
+benign conntrack-derived traffic can detect injected reconnaissance activity in
+real OT background traffic.
+
+The evaluated models are the distance-based k-NN approach, the K-means based
+approach, and the CPS-GUARD-inspired denoising autoencoder with outlier-aware
+threshold selection. For each model family, multiple configurations were tested
+by varying the aggregation window length, feature set, anomaly threshold, and
+model-specific parameters. These include the number of nearest neighbours for
+k-NN, the number of clusters for K-means, and the autoencoder architecture and
+Isolation Forest contamination value for the autoencoder-based approach. An
+overview of the evaluated model families and tuned parameters is given in
+Table~\ref{tab:model_overview}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.18\textwidth} p{0.38\textwidth} p{0.34\textwidth}}
+\toprule
+Model & Main varied parameters & Threshold selection \\
+\midrule
+k-NN 
+& $k$, feature set, window size, threshold quantile 
+& Quantile of benign calibration distances \\
+
+K-Means 
+& Number of clusters, feature set, window size, threshold quantile 
+& Quantile of benign calibration distances to the nearest centroid \\
+
+Autoencoder 
+& Architecture, feature set, window size, Isolation Forest contamination 
+& Threshold derived from benign calibration reconstruction errors after Isolation Forest outlier separation \\
+\bottomrule
+\end{tabular}
+\caption{Overview of evaluated model families and tuned parameters.}
+\label{tab:model_overview}
+\end{table}
+
+The experiments are evaluated in two stages. First, the validation split is used
+to compare configurations and identify promising model, feature-set and parameter
+combinations. These validation results are used for model selection and for
+understanding the effect of design choices such as window size and feature
+selection. The selected configurations are then evaluated on the test split, which
+is kept separate from the selection process and is used to assess how well the
+chosen configurations generalize to another period of network traffic.
+
+The results are reported using both window-level and range-level metrics.
+Window-level metrics treat each source-host window as an individual prediction
+and therefore measure how accurately the model classifies separate time windows.
+Range-level metrics instead group consecutive anomalous windows into alarm
+ranges and compare these ranges with the true attack intervals. This provides a
+more operational view of the results, since reconnaissance activity usually
+unfolds over a period of time rather than in a single isolated window.
+
+Both views are used throughout the discussion. Window-level F1 indicates how
+precise the model is at the individual-window level, while range-level F1
+indicates whether complete reconnaissance scenarios are detected as temporal
+events and how many separate false alarm ranges are produced. A model may
+therefore have a moderate window-level score while still detecting the relevant
+attack interval, or a strong window-level score while producing fragmented
+alarms.
+
+The tables in this chapter report the best-performing
+configurations according to the validation results, followed by their corresponding
+test-set performance. This avoids selecting models directly on the test split and
+allows the comparison between validation and test results to be used as an
+indication of robustness.
+
+
+
+
+
+% \section{Overall Detection Performance}
+% Compare best k-NN, K-Means and CPS-GUARD-style autoencoder configurations.
+
+% \section{Influence of Window Size}
+% Discuss 1 min, 5 min, 1 h, 5 h trade-offs.
+
+% \section{Influence of Feature Set}
+% Discuss which feature families were useful and whether compact sets were enough.
+
+% \section{Detection Performance per Reconnaissance Scenario}
+% Discuss T5/T4/T3, T2, T1/T0, low-and-slow.
+
+% \section{Comparison with IT Traffic}
+% Discuss whether results transfer outside OT.
+
+% \section{Operational Discussion}
+% Discuss deployment meaning, false alarms, SOC usefulness, recommended setup.
+
+% \section{Limitations}
+% Discuss injected attacks, limited environments, noisy benign data, validation dependence.
