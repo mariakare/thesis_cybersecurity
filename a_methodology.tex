@@ -470,11 +470,77 @@ Several values for the number of clusters are tested. Smaller values force the m
 
 
 \section{Experimental Configuration}
-With the defined models, there are still several design choices that can influence their detection performance. These include the feature set, aggregation window length, anomaly threshold, and model-specific parameters such as the number of nearest neighbors, number of K-means clusters, autoencoder architecture, and Isolation Forest contamination value. In order  to meaningfully select the model that would best perform for reconnaissance detection on conntrack-derived OT traffic, all possible combinations of these parameters were explored. 
+With the defined models, there are still several design choices that can influence their detection performance. These include the feature set, aggregation window length, anomaly threshold, and model-specific parameters such as the number of nearest neighbors, number of K-means clusters, autoencoder architecture, and Isolation Forest contamination value. In order to meaningfully select the model that would best perform for reconnaissance detection on conntrack-derived OT traffic, a grid of parameter combinations was evaluated.
+
 
 The sweeps are organized around four main dimensions. First, multiple aggregation window sizes are evaluated in order to study how temporal granularity affects detection. Shorter windows may capture short scanning bursts more precisely, while longer windows may smooth traffic behavior and make low-rate reconnaissance activity more visible. Second, several feature sets are tested, ranging from more general reconnaissance based sets, to more case specialized sets as discussed in Section~\ref{sec:features}. Third, each model is evaluated under multiple threshold settings. For distance-based models (such as K-NN or K-means), thresholds are selected as quantiles of the benign calibration score distribution, and for the autoencoder different Isolation Forest contamination values are tested. Finally, model-specific parameters are varied, such as \(k\) for k-NN, the number of clusters for K-means, and the hidden-layer dimensions of the autoencoder.
 
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{p{0.26\textwidth} p{0.26\textwidth} p{0.40\textwidth}}
+\toprule
+Model family & Configuration dimension & Evaluated values \\
+\midrule
+
+All models
+& Aggregation window
+& 60 s, 5 min, 1 h, and 5 h
+  \newline $(60{,}000$, $300{,}000$, $3{,}600{,}000$, and $18{,}000{,}000$ ms) \\
+
+\addlinespace
+
+All models
+& Feature sets
+& Candidate feature sets described in Appendix~\ref{app:feature_sets} \\
+
+\addlinespace
+
+Distance-based models
+& Threshold quantiles
+& $0.95$, $0.99$, $0.999$, $0.9999$, $0.99999$, $0.999999$, and $0.9999999$ \\
+
+\addlinespace
+
+Distance-based models
+& Number of clusters/neighbours
+& $1$, $3$, $5$, and $10$. For k-NN, $k=5$ was excluded from the final reduced sweep based on the validation results (see Section \ref{sec:knn_resource_constraints}). \\
+
+\addlinespace
+
+Autoencoder
+& Architecture
+& $N$-24-4-24-$N$, $N$-36-6-36-$N$, $N$-64-8-64-$N$, and $N$-64-16-64-$N$ \\
+
+\addlinespace
+
+Autoencoder
+& Isolation Forest contamination
+& $0.1$, $0.01$, $0.001$, $0.0001$, $10^{-5}$, $10^{-6}$, and $10^{-7}$ \\
+
+\bottomrule
+\end{tabular}
+\caption{Overview of the evaluated model configuration space.}
+\label{tab:sweep_configuration}
+\end{table}
+
+
 After exploring all these possibilities, the validation data is used to evaluate which configurations show the most promising results. The validation results are then used to refine the next sweeps by adjusting parameter ranges and adding or removing feature sets. Finally, the validation data is used to select the most promising model and parameter combinations for evaluation on the test set.
+
+\subsection{K-NN resource constraints}
+\label{sec:knn_resource_constraints}
+Due to the higher computational cost of k-NN, the k-NN experiments were not swept as exhaustively as the K-Means and autoencoder-based configurations. In particular, evaluating k-NN requires comparing each validation or test sample against the stored benign reference set, which made a full sweep over all feature sets, window sizes and values of \(k\) impractical with the available resources. K-Means and the autoencoder-based model were first evaluated over the full planned configuration space using the validation split, including all candidate feature sets, aggregation window sizes and threshold settings. These validation results were then used to identify feature sets that performed well across multiple reconnaissance scenarios and were not tailored to a single attack type.
+
+Based on these validation results, a smaller exploratory k-NN sweep was performed. This sweep still evaluated all aggregation window sizes and threshold quantiles, but for a more reduced set of promising feature sets. Its purpose was twofold: first, to verify whether the selected feature sets also worked well for the distance-based k-NN model, and second, to compare the effect of different values of \(k\).
+
+The exploratory k-NN results showed that \(k=5\) did not provide a meaningful improvement over the other tested values. In the few cases where \(k=5\) obtained the highest score, the absolute detection performance remained low and was therefore not practically relevant. Consequently, \(k=5\) was excluded from the final k-NN sweep. The final k-NN evaluation was then performed on the selected top three feature sets based on all previous results, using all aggregation window sizes and all threshold quantiles for the remaining values of \(k\).
+
+
+
+
+
+
 
 \section{Evaluation Metrics}
 
