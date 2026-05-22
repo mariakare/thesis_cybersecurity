@@ -19,40 +19,12 @@ This chapter presents the experimental results of the evaluated anomaly detectio
 models on the constructed reconnaissance detection datasets. The goal of the
 evaluation is to determine to what extent unsupervised models trained only on
 benign conntrack-derived traffic can detect injected reconnaissance activity in
-real OT background traffic.
+real OT background traffic. As described in Section~\ref{sec:experimental_configuration}, the configurations vary in feature set, aggregation window length, anomaly threshold, and model-specific parameters.
+For k-NN, the search space is more limited than for K-Means and the autoencoder
+because of its higher computational cost. The k-NN results are therefore
+interpreted as a targeted evaluation of validation-selected feature sets rather
+than as a full sweep over all candidate feature sets.
 
-The evaluated models are the distance-based k-NN approach, the K-means based
-approach, and the CPS-GUARD-inspired denoising autoencoder with outlier-aware
-threshold selection. For each model family, multiple configurations were tested
-by varying the aggregation window length, feature set, anomaly threshold, and
-model-specific parameters. These include the number of nearest neighbours for
-k-NN, the number of clusters for K-means, and the autoencoder architecture and
-Isolation Forest contamination value for the autoencoder-based approach. An
-overview of the evaluated model families and tuned parameters is given in
-Table~\ref{tab:model_overview}.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{p{0.18\textwidth} p{0.38\textwidth} p{0.34\textwidth}}
-\toprule
-Model & Main varied parameters & Threshold selection \\
-\midrule
-k-NN 
-& $k$, feature set, window size, threshold quantile 
-& Quantile of benign calibration distances \\
-
-K-Means 
-& Number of clusters, feature set, window size, threshold quantile 
-& Quantile of benign calibration distances to the nearest centroid \\
-
-Autoencoder 
-& Architecture, feature set, window size, Isolation Forest contamination 
-& Threshold derived from benign calibration reconstruction errors after Isolation Forest outlier separation \\
-\bottomrule
-\end{tabular}
-\caption{Overview of evaluated model families and tuned parameters.}
-\label{tab:model_overview}
-\end{table}
 
 The experiments are evaluated in two stages. First, the validation split is used
 to compare configurations and identify promising model, feature-set and parameter
@@ -78,11 +50,111 @@ therefore have a moderate window-level score while still detecting the relevant
 attack interval, or a strong window-level score while producing fragmented
 alarms.
 
-The tables in this chapter report the best-performing
-configurations according to the validation results, followed by their corresponding
-test-set performance. This avoids selecting models directly on the test split and
-allows the comparison between validation and test results to be used as an
-indication of robustness.
+Unless stated otherwise, the tables in this chapter report configurations selected
+according to validation performance, followed by their corresponding test-set
+performance. Differences between validation and test results are interpreted as an
+indication of robustness and sensitivity to the underlying benign traffic period.
+
+
+
+\section{Validation-Based Feature Set Selection}
+\label{sec:validation_feature_selection}
+% Show top validation feature sets, explain reduced k-NN search.
+
+Before comparing the final model configurations on the test split, the validation results were used to identify the most promising feature sets. This step was especially important because the full feature-set search could not be repeated exhaustively for k-NN due to its higher computational cost, as discussed in Section~\ref{sec:knn_resource_constraints}. The selection was therefore mainly based on the full K-Means and autoencoder validation sweeps, which covered the complete planned feature-set space. The preliminary k-NN validation runs were then used as an additional check to verify whether the selected feature sets also performed well as well as the rejected ones preforming worse.
+
+
+\definecolor{selectedrow}{RGB}{230,242,255}
+
+\
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3.5pt}
+\makebox[\textwidth][c]{%
+\begin{tabularx}{1.18\textwidth}{>{\raggedright\arraybackslash}X l l l l l l}
+\toprule
+Feature set & \#configs & Mean RF1 & Med. RF1 & Mean F1 & Med. F1 & Score \\
+\midrule
+\rowcolor{selectedrow}
+\texttt{csv\_golden\_minimal} & 224 & 0.422 & 0.466 & 0.407 & 0.442 & 0.414 \\
+
+\rowcolor{selectedrow}
+\texttt{csv\_omni\_core\_clean} & 224 & 0.432 & 0.500 & 0.382 & 0.459 & 0.407 \\
+
+\rowcolor{selectedrow}
+\texttt{csv\_low\_slow\_clean} & 224 & 0.234 & 0.143 & 0.325 & 0.240 & 0.280 \\
+% \texttt{csv\_golden\_minimal} & 224 & 0.422 & 0.466 & 0.407 & 0.442 & 0.414 \\
+% \texttt{csv\_omni\_core\_clean} & 224 & 0.432 & 0.500 & 0.382 & 0.459 & 0.407 \\
+% \texttt{csv\_low\_slow\_clean} & 224 & 0.234 & 0.143 & 0.325 & 0.240 & 0.280 \\
+\texttt{csv\_T2\_stealth\_scan} & 224 & 0.253 & 0.100 & 0.266 & 0.076 & 0.259 \\
+\texttt{csv\_recon\_core\_clean\_temporal} & 224 & 0.161 & 0.030 & 0.192 & 0.076 & 0.177 \\
+\texttt{csv\_T3\_T4\_T5\_loud\_scan} & 224 & 0.227 & 0.050 & 0.090 & 0.013 & 0.159 \\
+\texttt{csv\_recon\_core\_clean} & 224 & 0.135 & 0.025 & 0.130 & 0.037 & 0.133 \\
+\texttt{csv\_horizontal\_scan\_clean} & 112 & 0.185 & 0.019 & 0.046 & 0.009 & 0.115 \\
+\texttt{csv\_ablation\_entropy\_only} & 224 & 0.091 & 0.043 & 0.094 & 0.018 & 0.092 \\
+\texttt{csv\_ablation\_asymmetry\_only} & 112 & 0.000 & 0.000 & 0.000 & 0.000 & 0.000 \\
+\bottomrule
+\end{tabularx}
+}
+\caption{Validation-based feature set ranking. RF1 denotes range-level F1, and \#configs is the number of validation configurations included for each feature set. The selection score is computed as the average of mean validation RF1 and mean validation window-level F1. Highlighted rows indicate the feature sets selected for the final cross-model comparison and targeted k-NN evaluation.}
+\label{tab:validation_feature_set_ranking}
+\end{table}
+
+
+
+The goal of this selection was not only to find the highest individual validation score, but to identify feature sets that performed well across multiple reconnaissance scenarios. Feature sets that were designed for one specific attack type were therefore interpreted with caution, even when they achieved strong results on that specific attack. Instead, preference was given to feature sets with broader coverage across the evaluated attacks. To summarize the validation results across feature sets, a compact selection score is used. This score gives equal weight to the mean validation range F1 and the mean validation window-level F1. Table~\ref{tab:validation_feature_set_ranking} shows the resulting ranking. The two strongest feature sets are \texttt{csv\_golden\_minimal} and \texttt{csv\_omni\_core\_clean}, which both achieve the highest combined validation scores. \texttt{csv\_low\_slow\_clean} is also retained because it is the next strongest general-purpose feature set and is relevant for slower reconnaissance behaviour. Although \texttt{csv\_T2\_stealth\_scan} achieves competitive scores in some cases, it is more closely tied to a specific attack type and is therefore not selected.
+
+The three highest-scoring general feature sets thus are \feat{csv\_golden\_minimal}, \texttt{csv\_omni\_core\_clean}, and \texttt{csv\_low\_slow\_clean}. These are therefore retained for the final cross-model comparison and for the reduced k-NN evaluation. The median values
+show that the two strongest feature sets are not only driven by a small number of high-performing configurations, but also perform more consistently across the evaluated validation configurations.
+
+
+
+\subsection{ADAM}
+In addition to the feature sets constructed specifically for reconnaissance
+detection, an ADAM-inspired feature set was also evaluated. As introduced in Section~\ref{sec:literature_models}, this feature set was
+included because ADAM uses entropy-based traffic characteristics for anomaly
+detection in cyber-physical systems, and therefore provides a useful comparison
+point for evaluating whether a more compact entropy-oriented representation is
+sufficient for the present conntrack-based reconnaissance detection task.
+
+The ADAM-inspired feature set was evaluated using the same validation procedure
+as the other candidate feature sets. However, its validation performance was not
+competitive and hence dropped at an early stage, as shown in Table~\ref{tab:adam_feature_set_results}
+
+
+FIXXXXXXXXX TABLEEEEEEEEEEEEEEE
+
+These results suggest that the ADAM-inspired representation does not capture
+enough of the reconnaissance-specific behaviour present in the constructed
+dataset. In particular, the strongest selected feature sets combine several types
+of indicators, including destination spread, short-flow behaviour, failed or
+asymmetric communication, and temporal aggregation. The ADAM-inspired feature set
+is more limited in this respect, which may explain its weaker performance on the
+evaluated reconnaissance scenarios.
+
+\section{Overall Model Performance}
+% Best final configurations, validation + test table.
+
+\section{Influence of Window Size}
+% Temporal granularity trade-offs.
+
+\section{Influence of Feature Set}
+% What feature families worked and why.
+
+\section{Detection Performance per Reconnaissance Scenario}
+% Loud scans, T2, T1/T0, low-and-slow.
+
+\section{Validation--Test Generalization}
+% Discuss discrepancies and robustness.
+
+\section{Operational Discussion}
+% SOC usefulness, false alarms, recommended configuration.
+% Optional short IT comparison here if you have it.
+
+\section{Limitations}
+% Injected attacks, limited environments, validation dependence, reduced k-NN sweep.
 
 
 
