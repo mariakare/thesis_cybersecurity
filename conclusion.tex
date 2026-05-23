@@ -5,3 +5,17 @@ suggestions for future work and industrial applications.
 % mupltiple models for each timing situation thingy?
 % realistic attacks that are not simulated.
 
+
+\section{Future Work}
+The work presented in this thesis can be extended in several directions. A firstdirection  is to evaluate the approach in a dedicated OT test environment, digital twin, or cyber range. This would allow attacks to be executed directly in a realistic but controlled environment, instead of injecting simulated attack traffic into real benign  traffic. Such a setup would reduce the gap between the current evaluation and real attacker behaviour, without exposing operational customer networks to risk.
+
+A related direction is to broaden the evaluated attack scenarios. This thesis focuses mainly on nmap-based reconnaissance, including host discovery, port scanning, service probing and low-reate scanning. Future work could include more varied reconnaissance techniques, both in stealh and complexity as well as in the tools used. This would help determine whether the selected conntrack-based features detect reconnaissance behaviour more generally, or mainly the scan patterns considered in this work.
+
+Another direction is the development of a real-time detection pipeline. The current implementation processes conntrack data offline, but for operational use, flow reconstruction, window aggregation and anomaly scoring would have to be performed continuously as new events arrive. This would require optimizations to ensure that the detection pipeline can keep up with the incoming data, as well as mechanisms for alerting and responding to detected reconnaissance activity.
+
+The learned baseline could also be made more context-aware. In this thesis, each model learns one reference of normal behaviour for an environment, although traffic patterns may differ between working hours and nights, weekdays and weekends, maintenance periods or production cycles. Future work could investigate separate models per such time periods, or adaptive models that update their baseline over time.
+
+Future work should also improve the operational usefulness of the generated alerts. Instead of only reporting an anomaly score or binary prediction, the system could indicate which features contributed most to the alert. For example, it could report that a host contacted an unusual number of destination IPs, used uncommon ports, produced many short flows, or communicated outside its normal time profile. These explanations could be further enriched with additional context, such as asset inventories, DNS logs, authentication events, firewall decisions or analyst feedback. This would make the alerts easier to interpret for SOC analysts.
+
+
+Finally, the approach could be integrated more explicitly into a hybrid IDS architecture. In such a setup, existing signature-based and rule-based mechanisms would still handle known threats and clearly defined policy violations, while the conntrack-based anomaly detector would focus on deviations that are harder to describe with fixed rules. This would allow known or policy-relevant events to remain tied to explicit rules, while all anomalies that bypass those rules would still be flagged.
