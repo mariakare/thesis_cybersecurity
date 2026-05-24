@@ -215,3 +215,218 @@ Feature set & Included features \\
 \\
 
 \end{longtable}
+
+
+\section{Additional Validation Rankings}
+\label{app:additional_validation_rankings}
+
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2pt}
+\begin{adjustbox}{width=1.35\textwidth,center}
+\begin{tabular}{r l p{0.25\textwidth} l l l r r r r r r}
+\toprule
+Rank & Model & Feature set & Win. & Param. & Thr. 
+& Val P & Val R & \textbf{Val F1} 
+& Val RP & Val RR & \textbf{Val RF1} \\
+\midrule
+1 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 36-6-36 & cont. $10^{-3}$ & 0.991 & 1.000 & \textbf{0.996} & 0.830 & 1.000 & \textbf{0.907} \\
+2 & CPS-GUARD & \feat{low\_slow\_clean} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.987 & 1.000 & \textbf{0.994} & 0.830 & 1.000 & \textbf{0.907} \\
+3 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-8-64 & cont. $10^{-7}$ & 0.991 & 0.996 & \textbf{0.993} & 0.830 & 1.000 & \textbf{0.907} \\
+4 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-16-64 & cont. $10^{-7}$ & 0.996 & 0.968 & \textbf{0.982} & 0.900 & 0.923 & \textbf{0.911} \\
+5 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-8-64 & cont. $10^{-4}$ & 1.000 & 0.954 & \textbf{0.977} & 1.000 & 0.923 & \textbf{0.960} \\
+6 & k-NN & \feat{golden\_minimal} & 60 s & $k=10$ & $q=0.9999$ & 0.950 & 1.000 & \textbf{0.975} & 0.520 & 1.000 & \textbf{0.684} \\
+7 & k-NN & \feat{golden\_minimal} & 60 s & $k=3$ & $q=0.9999$ & 0.946 & 1.000 & \textbf{0.972} & 0.494 & 1.000 & \textbf{0.661} \\
+8 & k-NN & \feat{golden\_minimal} & 60 s & $k=1$ & $q=0.9999$ & 0.939 & 1.000 & \textbf{0.968} & 0.448 & 1.000 & \textbf{0.619} \\
+9 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=5$ & $q=0.999999$ & 0.981 & 0.953 & \textbf{0.967} & 0.077 & 0.250 & \textbf{0.118} \\
+10 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=3$ & $q=0.9999999$ & 0.987 & 0.947 & \textbf{0.966} & 0.111 & 0.250 & \textbf{0.154} \\
+11 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 36-6-36 & cont. $10^{-4}$ & 1.000 & 0.931 & \textbf{0.964} & 1.000 & 0.833 & \textbf{0.909} \\
+12 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=10$ & $q=0.99999$ & 0.971 & 0.956 & \textbf{0.964} & 0.059 & 0.250 & \textbf{0.095} \\
+13 & k-NN & \feat{omni\_core\_clean} & 60 s & $k=3$ & $q=0.9999$ & 0.953 & 0.973 & \textbf{0.963} & 0.582 & 1.000 & \textbf{0.736} \\
+14 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-16-64 & cont. $10^{-3}$ & 0.923 & 0.998 & \textbf{0.959} & 0.379 & 1.000 & \textbf{0.549} \\
+15 & CPS-GUARD & \feat{T2\_stealth\_scan} & 5 min & 64-16-64 & cont. $10^{-5}$ & 0.962 & 0.953 & \textbf{0.958} & 0.784 & 0.967 & \textbf{0.866} \\
+16 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-16-64 & cont. $10^{-3}$ & 0.913 & 1.000 & \textbf{0.954} & 0.317 & 1.000 & \textbf{0.481} \\
+17 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-8-64 & cont. $10^{-7}$ & 0.986 & 0.919 & \textbf{0.952} & 0.750 & 0.923 & \textbf{0.828} \\
+18 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-16-64 & cont. $10^{-3}$ & 0.944 & 0.958 & \textbf{0.951} & 0.707 & 0.967 & \textbf{0.817} \\
+19 & CPS-GUARD & \feat{recon\_core\_clean\_temporal} & 5 h & 36-6-36 & cont. $10^{-4}$ & 1.000 & 0.900 & \textbf{0.947} & 1.000 & 0.750 & \textbf{0.857} \\
+20 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=5$ & $q=0.9999$ & 0.928 & 0.967 & \textbf{0.947} & 0.029 & 0.250 & \textbf{0.051} \\
+21 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-16-64 & cont. $10^{-4}$ & 1.000 & 0.897 & \textbf{0.945} & 1.000 & 0.833 & \textbf{0.909} \\
+22 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-8-64 & cont. $10^{-6}$ & 1.000 & 0.897 & \textbf{0.945} & 1.000 & 0.833 & \textbf{0.909} \\
+23 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=3$ & $q=0.9999$ & 0.922 & 0.967 & \textbf{0.944} & 0.026 & 0.250 & \textbf{0.047} \\
+24 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=10$ & $q=0.9999$ & 0.925 & 0.964 & \textbf{0.944} & 0.027 & 0.250 & \textbf{0.049} \\
+25 & k-NN & \feat{low\_slow\_clean} & 60 s & $k=5$ & $q=0.99999$ & 0.983 & 0.896 & \textbf{0.937} & 0.143 & 1.000 & \textbf{0.250} \\
+26 & K-Means & \feat{golden\_minimal} & 5 min & $c=10$ & $q=0.999$ & 0.897 & 0.981 & \textbf{0.937} & 0.547 & 0.967 & \textbf{0.699} \\
+27 & K-Means & \feat{golden\_minimal} & 5 min & $c=5$ & $q=0.999$ & 0.897 & 0.981 & \textbf{0.937} & 0.547 & 0.967 & \textbf{0.699} \\
+28 & K-Means & \feat{golden\_minimal} & 5 min & $c=1$ & $q=0.999$ & 0.897 & 0.981 & \textbf{0.937} & 0.547 & 0.967 & \textbf{0.699} \\
+29 & K-Means & \feat{golden\_minimal} & 5 min & $c=3$ & $q=0.999$ & 0.897 & 0.981 & \textbf{0.937} & 0.547 & 0.967 & \textbf{0.699} \\
+30 & k-NN & \feat{golden\_minimal} & 60 s & $k=5$ & $q=0.9999$ & 0.874 & 1.000 & \textbf{0.933} & 0.044 & 1.000 & \textbf{0.085} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Top validation configurations ranked by window-level F1. RF1 denotes range-level F1, P/R denote precision and recall, and RP/RR denote range-level precision and recall. The common \texttt{csv\_} prefix is omitted from feature-set names for readability.}
+\label{tab:appendix_top_val_f1}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2pt}
+\begin{adjustbox}{width=1.35\textwidth,center}
+\begin{tabular}{r l p{0.25\textwidth} l l l r r r r r r}
+\toprule
+Rank & Model & Feature set & Win. & Param. & Thr. 
+& Val RP & Val RR & \textbf{Val RF1} 
+& Val P & Val R & \textbf{Val F1} \\
+\midrule
+1 & k-NN & \feat{low\_slow\_clean} & 5 min & $k=10$ & $q=0.9999$ & 1.000 & 0.933 & \textbf{0.966} & 1.000 & 0.390 & \textbf{0.561} \\
+2 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-16-64 & cont. $10^{-5}$ & 1.000 & 0.933 & \textbf{0.966} & 1.000 & 0.385 & \textbf{0.556} \\
+3 & k-NN & \feat{golden\_minimal} & 5 min & $k=10$ & $q=0.999999$ & 1.000 & 0.933 & \textbf{0.966} & 1.000 & 0.371 & \textbf{0.541} \\
+4 & k-NN & \feat{golden\_minimal} & 5 min & $k=3$ & $q=0.9999999$ & 1.000 & 0.933 & \textbf{0.966} & 1.000 & 0.347 & \textbf{0.516} \\
+5 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-8-64 & cont. $10^{-4}$ & 1.000 & 0.923 & \textbf{0.960} & 1.000 & 0.954 & \textbf{0.977} \\
+6 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 36-6-36 & cont. $10^{-5}$ & 0.907 & 1.000 & \textbf{0.951} & 0.996 & 0.996 & \textbf{0.996} \\
+7 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-16-64 & cont. $10^{-4}$ & 1.000 & 0.897 & \textbf{0.946} & 1.000 & 0.306 & \textbf{0.469} \\
+8 & CPS-GUARD & \feat{T3\_T4\_T5\_loud\_scan} & 60 s & 36-6-36 & cont. $10^{-7}$ & 1.000 & 0.897 & \textbf{0.946} & 1.000 & 0.097 & \textbf{0.177} \\
+9 & CPS-GUARD & \feat{T3\_T4\_T5\_loud\_scan} & 60 s & 24-4-24 & cont. $10^{-7}$ & 1.000 & 0.897 & \textbf{0.946} & 1.000 & 0.096 & \textbf{0.175} \\
+10 & CPS-GUARD & \feat{horizontal\_scan\_clean} & 60 s & 24-4-24 & cont. $10^{-4}$ & 1.000 & 0.861 & \textbf{0.925} & 1.000 & 0.048 & \textbf{0.092} \\
+11 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-8-64 & cont. $10^{-4}$ & 0.879 & 0.967 & \textbf{0.921} & 0.978 & 0.826 & \textbf{0.896} \\
+12 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-16-64 & cont. $10^{-6}$ & 0.900 & 0.923 & \textbf{0.911} & 0.996 & 0.968 & \textbf{0.982} \\
+13 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-8-64 & cont. $10^{-3}$ & 0.900 & 0.923 & \textbf{0.911} & 0.995 & 0.940 & \textbf{0.967} \\
+14 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-16-64 & cont. $10^{-4}$ & 0.900 & 0.923 & \textbf{0.911} & 0.995 & 0.883 & \textbf{0.936} \\
+15 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 36-6-36 & cont. $10^{-4}$ & 1.000 & 0.833 & \textbf{0.909} & 1.000 & 0.931 & \textbf{0.964} \\
+16 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-8-64 & cont. $10^{-6}$ & 1.000 & 0.833 & \textbf{0.909} & 1.000 & 0.897 & \textbf{0.945} \\
+17 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-16-64 & cont. $10^{-5}$ & 1.000 & 0.833 & \textbf{0.909} & 1.000 & 0.862 & \textbf{0.926} \\
+18 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 64-16-64 & cont. $10^{-4}$ & 1.000 & 0.833 & \textbf{0.909} & 1.000 & 0.828 & \textbf{0.906} \\
+19 & CPS-GUARD & \feat{golden\_minimal} & 1 h & 24-4-24 & cont. $10^{-5}$ & 1.000 & 0.833 & \textbf{0.909} & 1.000 & 0.724 & \textbf{0.840} \\
+20 & CPS-GUARD & \feat{low\_slow\_clean} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.830 & 1.000 & \textbf{0.907} & 0.987 & 1.000 & \textbf{0.994} \\
+21 & K-Means & \feat{golden\_minimal} & 5 min & $c=5$ & $q=0.999999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+22 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=3$ & $q=0.999999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+23 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=1$ & $q=0.9999999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+24 & K-Means & \feat{golden\_minimal} & 5 min & $c=3$ & $q=0.9999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+25 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=10$ & $q=0.9999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+26 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=5$ & $q=0.9999999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+27 & K-Means & \feat{golden\_minimal} & 5 min & $c=1$ & $q=0.9999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+28 & K-Means & \feat{golden\_minimal} & 5 min & $c=10$ & $q=0.9999$ & 0.875 & 0.933 & \textbf{0.903} & 0.953 & 0.385 & \textbf{0.548} \\
+29 & K-Means & \feat{low\_slow\_clean} & 5 min & $c=3$ & $q=0.999$ & 0.875 & 0.933 & \textbf{0.903} & 0.292 & 0.380 & \textbf{0.331} \\
+30 & K-Means & \feat{low\_slow\_clean} & 5 min & $c=10$ & $q=0.999$ & 0.875 & 0.933 & \textbf{0.903} & 0.292 & 0.380 & \textbf{0.331} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Top validation configurations ranked by range-level F1. RF1 denotes range-level F1, P/R denote window-level precision and recall, and RP/RR denote range-level precision and recall. The common \texttt{csv\_} prefix is omitted from feature-set names for readability.}
+\label{tab:appendix_top_val_rf1}
+\end{table}
+
+% \begin{table}[htbp]
+% \centering
+% \scriptsize
+% \renewcommand{\arraystretch}{1.15}
+% \setlength{\tabcolsep}{2pt}
+% \begin{adjustbox}{width=1.3\textwidth,center}
+% \begin{tabular}{r l p{0.28\textwidth} l l l r r r r}
+
+% \toprule
+% Rank & Model & Feature set & Window & Parameter & Threshold & Val F1 & Val RF1 & Test F1 & Test RF1 \\
+% \midrule
+
+
+
+
+% 1 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 36-6-36 & cont. $10^{-3}$ & 0.996 & 0.907 & 0.995 & 1.000 \\
+% 2 & CPS-GUARD & \feat{low\_slow\_clean} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.994 & 0.907 & 0.989 & 0.900 \\
+% 3 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-8-64 & cont. $10^{-7}$ & 0.993 & 0.907 & 0.978 & 0.750 \\
+% 4 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-16-64 & cont. $10^{-7}$ & 0.982 & 0.911 & 0.971 & 0.842 \\
+% 5 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.977 & 0.960 & 0.962 & 0.842 \\
+% 6 & k-NN & \feat{golden\_minimal} & 60 s & $k=10$ & $q=0.9999$ & 0.975 & 0.684 & -- & -- \\
+% 7 & k-NN & \feat{golden\_minimal} & 60 s & $k=3$ & $q=0.9999$ & 0.972 & 0.661 & -- & -- \\
+% 8 & k-NN & \feat{golden\_minimal} & 60 s & $k=1$ & $q=0.9999$ & 0.968 & 0.619 & 0.857 & 0.089 \\
+% 9 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=5$ & $q=0.999999$ & 0.967 & 0.118 & -- & -- \\
+% 10 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=3$ & $q=0.9999999$ & 0.966 & 0.154 & -- & -- \\
+% 11 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 36-6-36 & cont. $10^{-4}$ & 0.964 & 0.909 & 0.871 & 0.727 \\
+% 12 & k-NN & \feat{recon\_core\_clean} & 60 s & $k=10$ & $q=0.99999$ & 0.964 & 0.095 & -- & -- \\
+% 13 & k-NN & \feat{omni\_core\_clean} & 60 s & $k=3$ & $q=0.9999$ & 0.963 & 0.736 & -- & -- \\
+% 14 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-16-64 & cont. $10^{-3}$ & 0.959 & 0.549 & 0.945 & 0.145 \\
+% 15 & CPS-GUARD & \feat{T2\_stealth\_scan} & 5 min & 64-16-64 & cont. $10^{-5}$ & 0.958 & 0.866 & 0.897 & 0.292 \\
+% 16 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-16-64 & cont. $10^{-3}$ & 0.954 & 0.481 & 0.980 & 0.377 \\
+% 17 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-8-64 & cont. $10^{-7}$ & 0.952 & 0.828 & 0.944 & 0.842 \\
+% 18 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-16-64 & cont. $10^{-3}$ & 0.951 & 0.817 & 0.816 & 0.250 \\
+% 19 & CPS-GUARD & \feat{recon\_core\_clean\_temporal} & 5 h & 36-6-36 & cont. $10^{-4}$ & 0.947 & 0.857 & 0.900 & 0.833 \\
+% 20 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=5$ & $q=0.9999$ & 0.947 & 0.051 & -- & -- \\
+% 21 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-16-64 & cont. $10^{-4}$ & 0.945 & 0.909 & 0.814 & 0.727 \\
+% 22 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-8-64 & cont. $10^{-6}$ & 0.945 & 0.909 & 0.772 & 0.727 \\
+% 23 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=3$ & $q=0.9999$ & 0.944 & 0.047 & -- & -- \\
+% 24 & k-NN & \feat{recon\_core\_clean\_temporal} & 60 s & $k=10$ & $q=0.9999$ & 0.944 & 0.049 & -- & -- \\
+% 25 & k-NN & \feat{low\_slow\_clean} & 60 s & $k=5$ & $q=0.99999$ & 0.937 & 0.250 & -- & -- \\
+% 26 & K-Means & \feat{golden\_minimal} & 5 min & $c=10$ & $q=0.999$ & 0.937 & 0.699 & 0.875 & 0.206 \\
+% 27 & K-Means & \feat{golden\_minimal} & 5 min & $c=5$ & $q=0.999$ & 0.937 & 0.699 & 0.825 & 0.184 \\
+% 28 & K-Means & \feat{golden\_minimal} & 5 min & $c=1$ & $q=0.999$ & 0.937 & 0.699 & 0.825 & 0.184 \\
+% 29 & K-Means & \feat{golden\_minimal} & 5 min & $c=3$ & $q=0.999$ & 0.937 & 0.699 & 0.825 & 0.184 \\
+% 30 & k-NN & \feat{golden\_minimal} & 60 s & $k=5$ & $q=0.9999$ & 0.933 & 0.085 & -- & -- \\
+% \bottomrule
+% \end{tabular}
+% \end{adjustbox}
+% \caption{Top validation configurations ranked by window-level F1. RF1 denotes range-level F1, \(q\) denotes a distance-threshold quantile, \(c\) denotes the number of K-Means clusters, and cont. denotes the Isolation Forest contamination value. Missing test values indicate configurations that were not evaluated on the test split.}
+% \label{tab:appendix_top_val_f1}
+% \end{table}
+
+
+
+% \begin{table}[htbp]
+% \centering
+% \scriptsize
+% \renewcommand{\arraystretch}{1.15}
+% \setlength{\tabcolsep}{2pt}
+% \begin{adjustbox}{width=1.15\textwidth,center}
+% \begin{tabular}{r l p{0.28\textwidth} l l l r r r r}
+
+% \toprule
+% Rank & Model & Feature set & Window & Parameter & Threshold & Val RF1 & Val F1 & Test RF1 & Test F1 \\
+% \midrule
+
+
+% \toprule
+% Rank & Model & Feature set & Window & Parameter & Threshold & Val RF1 & Val F1 & Test RF1 & Test F1 \\
+% \midrule
+
+
+
+
+
+% 1 & k-NN & \feat{low\_slow\_clean} & 5 min & $k=10$ & $q=0.9999$ & 0.966 & 0.561 & 0.615 & 0.097 \\
+% 2 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-16-64 & cont. $10^{-5}$ & 0.966 & 0.556 & 0.500 & 0.066 \\
+% 3 & k-NN & \feat{golden\_minimal} & 5 min & $k=10$ & $q=0.999999$ & 0.966 & 0.541 & 0.300 & 0.064 \\
+% 4 & k-NN & \feat{golden\_minimal} & 5 min & $k=3$ & $q=0.9999999$ & 0.966 & 0.516 & 0.300 & 0.064 \\
+% 5 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.960 & 0.977 & 0.842 & 0.962 \\
+% 6 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 36-6-36 & cont. $10^{-5}$ & 0.951 & 0.996 & 0.900 & 0.979 \\
+% 7 & CPS-GUARD & \feat{T2\_stealth\_scan} & 60 s & 64-16-64 & cont. $10^{-4}$ & 0.946 & 0.469 & 0.429 & 0.049 \\
+% 8 & CPS-GUARD & \feat{T3\_T4\_T5\_loud\_scan} & 60 s & 36-6-36 & cont. $10^{-7}$ & 0.946 & 0.177 & 0.429 & 0.036 \\
+% 9 & CPS-GUARD & \feat{T3\_T4\_T5\_loud\_scan} & 60 s & 24-4-24 & cont. $10^{-7}$ & 0.946 & 0.175 & 0.429 & 0.035 \\
+% 10 & CPS-GUARD & \feat{horizontal\_scan\_clean} & 60 s & 24-4-24 & cont. $10^{-4}$ & 0.925 & 0.092 & -- & -- \\
+% 11 & CPS-GUARD & \feat{omni\_core\_clean} & 5 min & 64-8-64 & cont. $10^{-4}$ & 0.921 & 0.896 & 0.320 & 0.781 \\
+% 12 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-16-64 & cont. $10^{-6}$ & 0.911 & 0.982 & 0.842 & 0.971 \\
+% 13 & CPS-GUARD & \feat{golden\_minimal} & 60 s & 64-8-64 & cont. $10^{-3}$ & 0.911 & 0.967 & 0.842 & 0.957 \\
+% 14 & CPS-GUARD & \feat{omni\_core\_clean} & 60 s & 64-16-64 & cont. $10^{-4}$ & 0.911 & 0.936 & 0.842 & 0.896 \\
+% 15 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 36-6-36 & cont. $10^{-4}$ & 0.909 & 0.964 & 0.727 & 0.871 \\
+% 16 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-8-64 & cont. $10^{-6}$ & 0.909 & 0.945 & 0.727 & 0.772 \\
+% 17 & CPS-GUARD & \feat{low\_slow\_clean} & 1 h & 64-16-64 & cont. $10^{-5}$ & 0.909 & 0.926 & 0.727 & 0.772 \\
+% 18 & CPS-GUARD & \feat{omni\_core\_clean} & 1 h & 64-16-64 & cont. $10^{-4}$ & 0.909 & 0.906 & 0.727 & 0.704 \\
+% 19 & CPS-GUARD & \feat{golden\_minimal} & 1 h & 24-4-24 & cont. $10^{-5}$ & 0.909 & 0.840 & 0.727 & 0.478 \\
+% 20 & CPS-GUARD & \feat{low\_slow\_clean} & 60 s & 64-8-64 & cont. $10^{-4}$ & 0.907 & 0.994 & 0.900 & 0.989 \\
+% 21 & K-Means & \feat{golden\_minimal} & 5 min & $c=5$ & $q=0.999999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 22 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=3$ & $q=0.999999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 23 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=1$ & $q=0.9999999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 24 & K-Means & \feat{golden\_minimal} & 5 min & $c=3$ & $q=0.9999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 25 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=10$ & $q=0.9999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 26 & K-Means & \feat{omni\_core\_clean} & 5 min & $c=5$ & $q=0.9999999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 27 & K-Means & \feat{golden\_minimal} & 5 min & $c=1$ & $q=0.9999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 28 & K-Means & \feat{golden\_minimal} & 5 min & $c=10$ & $q=0.9999$ & 0.903 & 0.548 & 0.500 & 0.066 \\
+% 29 & K-Means & \feat{low\_slow\_clean} & 5 min & $c=3$ & $q=0.999$ & 0.903 & 0.331 & 0.500 & 0.059 \\
+% 30 & K-Means & \feat{low\_slow\_clean} & 5 min & $c=10$ & $q=0.999$ & 0.903 & 0.331 & 0.500 & 0.059 \\
+% \bottomrule
+% \end{tabular}
+% \end{adjustbox}
+% \caption{Top validation configurations ranked by range-level F1. RF1 denotes range-level F1, \(q\) denotes a distance-threshold quantile, \(c\) denotes the number of K-Means clusters, and cont. denotes the Isolation Forest contamination value. Missing test values indicate configurations that were not evaluated on the test split.}\caption{Top validation configurations ranked by range-level F1. RF1 denotes range-level F1, \(q\) denotes a distance-threshold quantile, \(c\) denotes the number of K-Means clusters, and cont. denotes the Isolation Forest contamination value. Missing test values indicate configurations that were not evaluated on the test split.}\label{tab:appendix_top_val_f1}
+% \end{table}
