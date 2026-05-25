@@ -150,26 +150,17 @@ The three highest-scoring general feature sets thus are \feat{csv\_golden\_minim
 \section{Overall Model Performance}
 % Best final configurations, validation + test table.
 \label{sec:overall_model_performance}
+\subsection{Validation Ranking Results}
 The next step is to compare the best-performing configurations across the evaluated model families. Since many model, feature-set, window-size and threshold combinations were evaluated, the focus lies on the strongest configurations and on the main patterns that emerge from the validation results. The full top-ranked validation configurations are provided in Appendix~\ref{tab:appendix_top_val_f1} and Appendix~\ref{tab:appendix_top_val_rf1}, where the models are ranked separately by window-level F1 and range-level F1. The appendix rankings show that the highest window-level F1 scores are dominated by CPS-GUARD configurations with 60-second windows. These configurations achieve very high window-level F1 and also strong range-level scores. In contrast, several of the highest range-F1 configurations use 5-minute windows and obtain perfect or near-perfect range precision with high range recall.
 
+\subsection{Interpreting Window-Level and Range-Level Metrics}
+Both window-level F1 and range-level F1 are used because they capture different aspects of the detection task. Window-level F1 evaluates each source-host window as a separate prediction, and therefore measures how accurately the model labels individual time windows. Range-level F1 instead groups consecutive anomalous windows into alarm ranges and compares these with the true reconnaissance intervals. This gives a more operational view of the detector, since an analyst would usually investigate an alarm period rather than isolated individual windows.
 
-Both window-level F1 and range-level F1 are considered because they emphasize different aspects of the detection task. Window-level F1, rewards configurations that classify individual source-host windows accurately. Range-level F1 instead evaluates wheter complete reconnaissance intervals are detected as alamr ranges. A model can therefore obtain a high range-level score even when its window-level recall is lower, as long as it detects teh attack interval with few false alarm ranges. Similarly, a model can obtain a high window-level F1 while still producing fragmented alarms that reduce its range-level F1.
-
-The two metrics also differ in the number of units over which they are computed. This becomes visible in the results. Window-level F1 is calculated over individual windows. Larger aggregation windows produce fewer evaluation points than shorter windows, which means that each false positive or false negative has a larger effect on the final score. Range-level F1 is calculated over detected and true alarm ranges rather than over individual windows. This usually results in even fewer evaluation units, so a single missed attack range or a single additional false alarm range can strongly affect the range-level precision, recall and F1-score. For this reason, the underlying precision and recall values are inspected together with F1 rather than using the F1-score alone.
+The two metrics can lead to different conclusions. A model may achieve a high range-level score even when it only detects part of an attack interval, as long as at least one alarm range overlaps the true attack range. Conversely, a model may detect many attack windows but still obtain a lower range-level score if its false positives are spread over many separate alarm ranges. Larger aggregation windows and range-level evaluation also reduce the number of evaluation units, so a single missed attack range or false alarm range can have a strong effect on the final score.
 
 The rankings also show why F1 should not be interpreted in isolation. Several configurations achieve similar F1 or range F1 values while making different trade-offs between precision and recall. In particular, a high range F1 can be obtained either by detecting almost all attack ranges with some additional false alarm ranges, or by producing very few false alarm ranges while missing one or more attack ranges. Although both types of error are relevant, missed attack ranges are more problematic in the context of early reconnaissance detection. A small number of additional false alarm ranges can still be inspected by an analyst, whereas a false negative means that an entire reconnaissance interval may remain unnoticed. Therefore, when configurations have comparable F1 scores, preference is given to models with no, or fewer, range false negatives. However, false positives remain important for operational usability, so the main ranking still uses F1 rather than a recall-weighted \(F_{\beta}\)-score.
 
-Based on this interpretation, Table~\ref{tab:selected_model_candidates} summarizes the strongest customer 1 validation candidates per model family under the two ranking criteria. For each model familiy, the table includes the best configuration when ranked by range-level F1 and by window-level F1. All configurations are evaluated on the same validation attack and test scenarios. The reported metrics are therefore computed against the same ground truth attack windows and attack ranges. 
-
-For CPS-GUARD and k-NN, the F1-ranked configuration is retained because it achieves perfect validation range recall, meaning that no validation attack ranges are missed. The RF1-ranked alternative obtains higher range-level F1, but this is mainly due to fewer false alarm ranges and comes at the cost of missed attack ranges. 
-
-For K-Means, the same trade-off is visible. The RF1-ranked configuration has higher range precision and range F1, but misses more attack ranges and has much lower window-level recall. The F1-ranked configuration is therefore retained as the representative K-Means candidate, although its lower range precision indicates that it produces more false alarm ranges. 
-
-For k-NN, the F1-ranked configuration is also retained as the main representative configuration. Although the RF1-ranked k-NN configuration obtains a higher validation range-level F1, it does so with lower window-level recall and with missed attack ranges. The RF1-ranked k-NN configuration reaches a higher validation range-level F1, but it misses attack ranges and has substantially lower window-level recall. The F1-ranked configuration detects all validation attack ranges and achieves perfect validation recall at the window level, although this comes with lower range precision.
-
-The ADAM-inspired entropy configuration performs competitively, however, it does not achieve perfect range recall and therefore misses some attack ranges. 
-
-
+\subsection{Selected Models}
 
 \begin{table}[htbp]
 \centering
@@ -231,7 +222,7 @@ k-NN
 & $k=10$, $q=0.9999$
 & 1.000 & \textbf{0.975}
 & 0.520 & 1.000 & \textbf{0.684}
-& -- & -- \\
+& 0.856 & 0.080 \\
 
 k-NN
 & RF1
@@ -258,6 +249,20 @@ ADAM-inspired k-NN
 \label{tab:selected_model_candidates}
 \end{table}
 
+Based on this interpretation, Table~\ref{tab:selected_model_candidates} summarizes the strongest customer 1 validation candidates per model family under the two ranking criteria. For each model familiy, the table includes the best configuration when ranked by range-level F1 and by window-level F1. All configurations are evaluated on the same validation attack and test scenarios. The reported metrics are therefore computed against the same ground truth attack windows and attack ranges. 
+
+For CPS-GUARD and k-NN, the F1-ranked configuration is retained because it achieves perfect validation range recall, meaning that no validation attack ranges are missed. The RF1-ranked alternative obtains higher range-level F1, but this is mainly due to fewer false alarm ranges and comes at the cost of missed attack ranges. 
+
+For K-Means, the same trade-off is visible. The RF1-ranked configuration has higher range precision and range F1, but misses more attack ranges and has much lower window-level recall. The F1-ranked configuration is therefore retained as the representative K-Means candidate, although its lower range precision indicates that it produces more false alarm ranges. 
+
+For k-NN, the F1-ranked configuration is also retained as the main representative configuration. Although the RF1-ranked k-NN configuration obtains a higher validation range-level F1, it does so with lower window-level recall and with missed attack ranges. The RF1-ranked k-NN configuration reaches a higher validation range-level F1, but it misses attack ranges and has substantially lower window-level recall. The F1-ranked configuration detects all validation attack ranges and achieves perfect validation recall at the window level, although this comes with lower range precision.
+
+The ADAM-inspired entropy configuration performs competitively, however, it does not achieve perfect range recall and therefore misses some attack ranges. 
+
+
+
+
+\subsection{Test Performance of Selected Models}
 
 After selecting the representative configurations from the customer 1 validation results,
 their performance is evaluated on the test split. Table~\ref{tab:selected_test_performance}
@@ -270,7 +275,7 @@ the range level.
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
 \begin{adjustbox}{width=1.35\textwidth,center}
-\begin{tabular}{l p{0.23\textwidth} l l r r r r r r r}
+\begin{tabular}{l p{0.23\textwidth} l l r r r r r r }
 \toprule
 Model & Feature set & Win. & Parameters
 & Test P & Test R & \textbf{Test F1}
@@ -295,8 +300,8 @@ k-NN
 & \feat{golden\_minimal}
 & 60 s
 & $k=10$, $q=0.9999$
-& -- & -- & \textbf{--}
-& -- & -- & \textbf{--} \\
+& 0.750 & 0.996 & \textbf{0.856}
+& 0.04 & 0.818 & \textbf{0.080} \\
 
 ADAM-inspired k-NN
 & \feat{adam\_entropy}
@@ -309,12 +314,15 @@ ADAM-inspired k-NN
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Test-set performance of the validation-selected representative configurations. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1. RFN denotes the number of missed attack ranges.}
+\caption{Test-set performance of the validation-selected representative configurations. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1. }
 \label{tab:selected_test_performance}
 \end{table}
 
+% confusion matrix of best feature set per attack type?
 
-The selected CPS-GUARD configuration generalizes best to the test split. It achieves a window-level F1-score of 0.995 and detects all test attack ranges, resulting in a range-level F1-score of 1.000. This indicates that the validation performance was not only caused by overfitting to the validation period.
+
+The selected CPS-GUARD configuration generalizes best to the test split. It achieves a window-level F1-score of 0.995 and detects all test attack ranges, resulting in a range-level F1-score of 1.000. This indicates that the validation performance was not only caused by overfitting to the validation period.It is also notable that this configuration uses the \feat{golden\_minimal} feature set and the original CPS-GUARD-style 36-6-36 architecture.
+% best architecture is the one suggested by original paper. Also golden_minimal best preforming feature set.
 
 The selected K-Means configuration retains strong window-level recall on the test split, but its range-level precision is low. This means that although many attack windows are detected, the predictions are fragmented into several false alarm ranges, which would increase the amount of analyst work in an operational setting.
 
