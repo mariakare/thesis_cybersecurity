@@ -15,24 +15,14 @@
 \textcolor{blue}{is this too much repetition?}
 
 
-This chapter presents the experimental results of the evaluated anomaly detection
-models on the constructed reconnaissance detection datasets. The goal of the
-evaluation is to determine to what extent unsupervised models trained only on
-benign conntrack-derived traffic can detect injected reconnaissance activity in
-real OT background traffic. As described in Section~\ref{sec:experimental_configuration}, the configurations vary in feature set, aggregation window length, anomaly threshold, and model-specific parameters.
+This chapter presents the experimental results of the evaluated anomaly detection models on the constructed reconnaissance detection datasets. The goal of the evaluation is to determine to what extent unsupervised models trained only on benign conntrack-derived traffic can detect injected reconnaissance activity in real OT background traffic. As described in Section~\ref{sec:experimental_configuration}, the configurations vary in feature set, aggregation window length, anomaly threshold, and model-specific parameters.
 For k-NN, the search space is more limited than for K-Means and the autoencoder
 because of its higher computational cost. The k-NN results are therefore
 interpreted as a targeted evaluation of validation-selected feature sets rather
 than as a full sweep over all candidate feature sets.
 
 
-The experiments are evaluated in two stages. First, the validation split is used
-to compare configurations and identify promising model, feature-set and parameter
-combinations. These validation results are used for model selection and for
-understanding the effect of design choices such as window size and feature
-selection. The selected configurations are then evaluated on the test split, which
-is kept separate from the selection process and is used to assess how well the
-chosen configurations generalize to another period of network traffic.
+The experiments are evaluated in two stages. The main model selection is performed on customer 1. First, the customer 1 validation split is used to compare configurations and identify promising model, feature-set and parameter combinations. These validation results are used for model selection and for understanding the effect of design choices such as window size and feature selection. The selected configurations are then evaluated on the customer 1 test split, which is kept separate from the selection process and is used to assess how well the chosen configurations generalize to another period of network traffic. In a final step, the selected top configurations are also evaluated on customer 2 as an additional cross-environment check.
 
 The results are reported using both window-level and range-level metrics.
 Window-level metrics treat each source-host window as an individual prediction
@@ -169,7 +159,173 @@ The two metrics also differ in the number of units over which they are computed.
 
 The rankings also show why F1 should not be interpreted in isolation. Several configurations achieve similar F1 or range F1 values while making different trade-offs between precision and recall. In particular, a high range F1 can be obtained either by detecting almost all attack ranges with some additional false alarm ranges, or by producing very few false alarm ranges while missing one or more attack ranges. Although both types of error are relevant, missed attack ranges are more problematic in the context of early reconnaissance detection. A small number of additional false alarm ranges can still be inspected by an analyst, whereas a false negative means that an entire reconnaissance interval may remain unnoticed. Therefore, when configurations have comparable F1 scores, preference is given to models with no, or fewer, range false negatives. However, false positives remain important for operational usability, so the main ranking still uses F1 rather than a recall-weighted \(F_{\beta}\)-score.
 
+Based on this interpretation, Table~\ref{tab:selected_model_candidates} summarizes the strongest customer 1 validation candidates per model family under the two ranking criteria. For each model familiy, the table includes the best configuration when ranked by range-level F1 and by window-level F1. All configurations are evaluated on the same validation attack and test scenarios. The reported metrics are therefore computed against the same ground truth attack windows and attack ranges. 
 
+For CPS-GUARD and k-NN, the F1-ranked configuration is retained because it achieves perfect validation range recall, meaning that no validation attack ranges are missed. The RF1-ranked alternative obtains higher range-level F1, but this is mainly due to fewer false alarm ranges and comes at the cost of missed attack ranges. 
+
+For K-Means, the same trade-off is visible. The RF1-ranked configuration has higher range precision and range F1, but misses more attack ranges and has much lower window-level recall. The F1-ranked configuration is therefore retained as the representative K-Means candidate, although its lower range precision indicates that it produces more false alarm ranges. 
+
+For k-NN, the F1-ranked configuration is also retained as the main representative configuration. Although the RF1-ranked k-NN configuration obtains a higher validation range-level F1, it does so with lower window-level recall and with missed attack ranges. The RF1-ranked k-NN configuration reaches a higher validation range-level F1, but it misses attack ranges and has substantially lower window-level recall. The F1-ranked configuration detects all validation attack ranges and achieves perfect validation recall at the window level, although this comes with lower range precision.
+
+The ADAM-inspired entropy configuration performs competitively, however, it does not achieve perfect range recall and therefore misses some attack ranges. 
+
+
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2pt}
+\begin{adjustbox}{width=1.35\textwidth,center}
+\begin{tabular}{l l p{0.22\textwidth} l l r r r r r r r r}
+\toprule
+Model & Basis & Feature set & Win. & Parameters
+& Val R & \textbf{Val F1}
+& Val RP & Val RR & \textbf{Val RF1}
+& Test F1 & Test RF1 \\
+\midrule
+
+\rowcolor{selectedrow}
+CPS-GUARD
+& F1
+& \feat{golden\_minimal}
+& 60 s
+& 36-6-36, cont. $10^{-3}$
+& 1.000 & \textbf{0.996}
+& 0.830 & 1.000 & \textbf{0.907}
+& 0.995 & 1.000 \\
+
+CPS-GUARD
+& RF1
+& \feat{omni\_core\_clean}
+& 5 min
+& 64-16-64, cont. $10^{-5}$
+& 0.385 & \textbf{0.556}
+& 1.000 & 0.933 & \textbf{0.966}
+& 0.066 & 0.500 \\
+
+\rowcolor{selectedrow}
+K-Means
+& F1
+& \feat{golden\_minimal}
+& 5 min
+& $c=10$, $q=0.999$
+& 0.981 & \textbf{0.937}
+& 0.547 & 0.967 & \textbf{0.699}
+& 0.875 & 0.206 \\
+
+K-Means
+& RF1
+& \feat{golden\_minimal}
+& 5 min
+& $c=5$, $q=0.999999$
+& 0.385 & \textbf{0.548}
+& 0.875 & 0.933 & \textbf{0.903}
+& 0.066 & 0.500 \\
+
+\rowcolor{selectedrow}
+k-NN
+& F1
+& \feat{golden\_minimal}
+& 60 s
+& $k=10$, $q=0.9999$
+& 1.000 & \textbf{0.975}
+& 0.520 & 1.000 & \textbf{0.684}
+& -- & -- \\
+
+k-NN
+& RF1
+& \feat{low\_slow\_clean}
+& 5 min
+& $k=10$, $q=0.9999$
+& 0.390 & \textbf{0.561}
+& 1.000 & 0.933 & \textbf{0.966}
+& 0.097 & 0.615 \\
+
+\rowcolor{selectedrow}
+ADAM-inspired k-NN
+& F1/RF1
+& \feat{adam\_entropy}
+& 1 h
+& $k=1$, $q=0.99999$
+& 0.829 & \textbf{0.906}
+& 1.000 & 0.714 & \textbf{0.833}
+& 0.906 & 0.833 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Selected validation candidates per model family. The highlighted rows indicate the representative configurations retained for the main comparison. F1 denotes window-level F1, RP/RR/RF1 denote range-level precision, recall and F1.}
+\label{tab:selected_model_candidates}
+\end{table}
+
+
+After selecting the representative configurations from the customer 1 validation results,
+their performance is evaluated on the test split. Table~\ref{tab:selected_test_performance}
+reports the test-set precision, recall and F1-score at both the window level and
+the range level.
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{width=1.35\textwidth,center}
+\begin{tabular}{l p{0.23\textwidth} l l r r r r r r r}
+\toprule
+Model & Feature set & Win. & Parameters
+& Test P & Test R & \textbf{Test F1}
+& Test RP & Test RR & \textbf{Test RF1} \\
+\midrule
+
+CPS-GUARD
+& \feat{golden\_minimal}
+& 60 s
+& 36-6-36, cont. $10^{-3}$
+& 1.000 & 0.989 & \textbf{0.995}
+& 1.000 & 1.000 & \textbf{1.000} \\
+
+K-Means
+& \feat{golden\_minimal}
+& 5 min
+& $c=10$, $q=0.999$
+& 0.791 & 0.980 & \textbf{0.875}
+& 0.119 & 0.778 & \textbf{0.206} \\
+
+k-NN
+& \feat{golden\_minimal}
+& 60 s
+& $k=10$, $q=0.9999$
+& -- & -- & \textbf{--}
+& -- & -- & \textbf{--} \\
+
+ADAM-inspired k-NN
+& \feat{adam\_entropy}
+& 1 h
+& $k=1$, $q=0.99999$
+& 1.000 & 0.829 & \textbf{0.906}
+& 1.000 & 0.714 & \textbf{0.833} \\
+
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Test-set performance of the validation-selected representative configurations. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1. RFN denotes the number of missed attack ranges.}
+\label{tab:selected_test_performance}
+\end{table}
+
+
+The selected CPS-GUARD configuration generalizes best to the test split. It achieves a window-level F1-score of 0.995 and detects all test attack ranges, resulting in a range-level F1-score of 1.000. This indicates that the validation performance was not only caused by overfitting to the validation period.
+
+The selected K-Means configuration retains strong window-level recall on the test split, but its range-level precision is low. This means that although many attack windows are detected, the predictions are fragmented into several false alarm ranges, which would increase the amount of analyst work in an operational setting.
+
+The ADAM-inspired entropy baseline also transfers consistently to the test split, with high precision and a window-level F1-score of 0.906. However, its range recall remains lower than CPS-GUARD because two attack ranges are missed.
+
+
+\subsection{Computational Cost and Practical Trade-offs}
+\label{sec:computational_tradeoffs}
+
+\subsection{Cross-Environment Evaluation on Customer 2}
+\label{sec:customer2_cross_environment}
 
 
 

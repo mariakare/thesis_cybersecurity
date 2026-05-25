@@ -29,9 +29,14 @@ The datasets used come from real OT environments of the collaborating companies.
 For safety and operational reasons, reconnaissance attacks were not executed directly against the OT environments. Even harmless scanning activity can disrupt fragile or legacy industrial devices, trigger alerts, or interfere with normal operations. Instead, reconnaissance behavior was simulated in a controlled environment and injected into the real benign traffic. This approach allows the evaluation of attack detection methods while avoiding unnecessary risk to customer systems.
 % \textcolor{red}{add dummy data example}
 \subsection{Data Scope}
-The OT dataset consists of metadata from two real environments, which was collected during the months of March and April of 2026. The collected traffic represents normal operational communication observed during the measurement periods. No confirmed "attacks" were present in the collected company data, however some abnormalities may be present due to noise or misconfigurations. 
+The OT dataset consists of metadata from two real environments, collected during March and April 2026. The collected traffic represents normal operational communication observed during the measurement periods. No confirmed attacks were present in the collected company data, although some abnormal patterns may still be present due to noise, misconfigurations or unusual benign activity.
 
-Figure~\ref{fig:customer1_baseline_weeks} shows two weeks of traffic from one of the companies, represented as the number of connections per 10-minute interval. In week 16, the traffic pattern is consistent with what would be expected from an OT environment. The number of connections follows a periodic structure, with higher and more spiky activity during working hours and lower activity after hours, during the weekend. In week 15, however, the traffic pattern is more irregular. Between 2026-04-10 and 2026-04-13, there is a sudden higher but constant number of connections. Internal inspection linked this irregularity mainly to one source host, which generated many additional connections and changed its usual destination pattern by communicating with other servers on port 80. This bahavior shows that OT traffic, while benign, can still contain unusual patterns.
+
+Figure~\ref{fig:customer1_week15} and~\ref{fig:customer1_week16} shows two weeks of traffic from customer 1, represented as the number of connections per 10-minute interval. In week 16, the traffic pattern is consistent with what would be expected from an OT environment. The number of connections follows a periodic structure, with higher and more spiky activity during working hours and lower activity after hours, during the weekend. In week 15, however, the traffic pattern is more irregular. Between 2026-04-10 and 2026-04-13, there is a sudden higher but constant number of connections. Internal inspection linked this irregularity mainly to one source host, which generated many additional connections and changed its usual destination pattern by communicating with other servers on port 80. This bahavior shows that OT traffic, while benign, can still contain unusual patterns.
+
+Figure~\ref{fig:customer2_week13} shows an example week for customer 2. Here, the expected periodicity is again visible, with activity during workdays and little to no activity after hours and during the weekend. 
+
+The main validation and test experiments are performed on customer 1, while customer 2 is reserved for an additional cross-environment check of the strongest configurations.
 
 
 \begin{figure}[htbp]
@@ -53,7 +58,14 @@ Figure~\ref{fig:customer1_baseline_weeks} shows two weeks of traffic from one of
         \label{fig:customer1_week16}
     \end{subfigure}
 
-    \caption{Baseline network traffic for customer 1 across two selected weeks.}
+    \begin{subfigure}{0.95\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/week_2026_13_connections.pdf}
+        \caption{Baseline traffic for customer 2, week 13.}
+        \label{fig:customer2_week13}
+    \end{subfigure}
+
+    \caption{Baseline network traffic examples across selected customer weeks.}
     \label{fig:customer1_baseline_weeks}
 \end{figure}
 
@@ -185,6 +197,18 @@ The isolated attack traces could not be directly inserted into the company data,
 company ranges, respectively. This preserves the intended attack direction of an IT host performing reconnaissance towards OT targets. The timestamps of the isolated attack traces were also shifted into the relevant periods of the company data. The relative timing within each attack was preserved, so that scan bursts, idle gaps, and low-and-slow patterns remained intact after injection.
 
 After data remapping, the malicious data could be injected into the validation and testing splits. Labels were assigned during this integration step. Original company traffic was treated as benign, while the injected reconnaissance records were labeled as malign traffic. The different attack names were also retained as metadata allowing for later evaluation of results at a per attack scenario. 
+
+Figure~\ref{fig:customer2_attack_injection_example} shows an example of a low-and-slow reconnaissance scenario injected into the customer 2 test split, using 5-minute aggregation bins.
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{adjustbox}{width=1.2\textwidth,center}
+        \includegraphics[width=\textwidth]{figures/traffic_timeline_customer2_1_test_part_apt_300000ms_bins.pdf}
+    \end{adjustbox}
+    \caption{Example of a low-and-slow reconnaissance scenario injected into the customer 2 test split. The attack is visible as four separated bursts over the real benign background traffic, using 5-minute bins.}
+    \label{fig:customer2_attack_injection_example}
+\end{figure}
 
 It should be noted that while the injected traffic provides a useful approximation of how reconnaissance attacks may appear in the different customer environments, not all effects of an attack executed directly inside the companies' networks are reproduced, such as device-specific responses, firewall behavior, or operational side effects.
 
@@ -527,7 +551,9 @@ Autoencoder
 \end{table}
 
 
-After exploring all these possibilities, the validation data is used to evaluate which configurations show the most promising results. The validation results are then used to refine the next sweeps by adjusting parameter ranges and adding or removing feature sets. Finally, the validation data is used to select the most promising model and parameter combinations for evaluation on the test set.
+% After exploring all these possibilities, the validation data is used to evaluate which configurations show the most promising results. The validation results are then used to refine the next sweeps by adjusting parameter ranges and adding or removing feature sets. Finally, the validation data is used to select the most promising model and parameter combinations for evaluation on the test set.
+
+After exploring the configuration space in Table~\ref{tab:sweep_configuration}, the customer 1 validation results are used to identify the most promising configurations and to refine the next sweeps by adjusting parameter ranges and adding or removing feature sets. The strongest configurations are then evaluated on the customer 1 test split. Customer 2 is kept separate from this selection procedure and is used only as an additional cross-environment evaluation of the selected configurations.
 
 \subsection{K-NN resource constraints}
 \label{sec:knn_resource_constraints}
