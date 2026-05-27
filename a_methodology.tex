@@ -1,4 +1,5 @@
 \chapter{Dataset Construction and Experimental Setup}
+\label{ch:dataset}
 \label{ch:experimental_setup}
 This chapter describes how the datasets used in the experiments were constructed. The process starts from raw Linux conntrack metadata collected from real OT environments. These binary event files are reconstructed into unidirectional flow records, and split chronologically into training, validation, and test periods. Attack data is simulated and remapped to match the companies' data context. The resulting output is therefore a set of flow-level datasets that serve as input to the feature extraction and detection methodology described in Chapter~\ref{ch:detection_methodology}.
 
@@ -191,7 +192,7 @@ Additional scenarios include host discovery (\texttt {-sn}), which identifies re
 
 \subsection{Attack Injection}
 After executing the described reconnaissance attack scenarios, the adversarial traffic was isolated from the benign simulation traffic. This isolation was
-based on the recorded attack timelines, the known attacker address, and the target scope of each scenario. Conntrack records were flagged as malign when their timestamps fell within the corresponding attack interval and their endpoints matched the expected bidirectional attacker-to-target communication. 
+based on the recorded attack timelines, the known attacker address, and the target scope of each scenario. Conntrack records were flagged as malign when their timestamps fell within the corresponding attack interval and their endpoints matched the expected unidirectional attacker-to-target communication. 
 
 The isolated attack traces could not be directly inserted into the company data, since much of their metadata would not match. Specifically, the IP addresses and the timestamps from the virtual OT lab was modified in order to blend in. The IP remapping was deterministic, ensuring that attacker-side and target-side addresses were projected consistently onto IT-side and OT-side
 company ranges, respectively. This preserves the intended attack direction of an IT host performing reconnaissance towards OT targets. The timestamps of the isolated attack traces were also shifted into the relevant periods of the company data. The relative timing within each attack was preserved, so that scan bursts, idle gaps, and low-and-slow patterns remained intact after injection.
@@ -206,7 +207,7 @@ Figure~\ref{fig:customer2_attack_injection_example} shows an example of a low-an
     \begin{adjustbox}{width=1.2\textwidth,center}
         \includegraphics[width=\textwidth]{figures/traffic_timeline_customer2_1_test_part_apt_300000ms_bins.pdf}
     \end{adjustbox}
-    \caption{Example of a low-and-slow reconnaissance scenario injected into the customer 2 test split. The attack is visible as four separated bursts over the real benign background traffic, using 5-minute bins.}
+    \caption{Example of a low-and-slow reconnaissance scenario injected into the customer 2 test split, using 5-minute bins.}
     \label{fig:customer2_attack_injection_example}
 \end{figure}
 
@@ -340,7 +341,7 @@ balanced. Similar flow-based anomaly detection systems are described by Dromard~
 
 % The \textbf{flow duration and packet statistics} features describe the shape of the flows rather than only their total volume. Reconnaissance traffic often consists of many lightweight connection attempts, so features such as \feat{mean\_duration\_s}, \feat{std\_duration\_s}, \feat{mean\_bytes\_per\_packet}, \feat{bytes\_per\_flow}, and \feat{packets\_per\_flow} can help distinguish short probing behavior from regular communication.
 
-\textbf{Flow duration and packet statistics} describe another dimension of network behavior. Features such as \feat{mean\_duration\_s} and \feat{std\_duration\_s} summarize how long the observed flows last, while \feat{mean\_bytes\_per\_packet}, \feat{std\_bytes\_per\_packet}, \feat{bytes\_per\_flow}, and \feat{packets\_per\_flow} describe how much traffic is exchanged per flow and per packet. These features are relevant for reconnaissance traffic which may produce many short and lightweight connections, especially during host or port probing. Similar features are included in standard NetFlow based feature sets for network intrusion detection~\cite{Sarhan_2021}
+\textbf{Flow duration and packet statistics} describe another dimension of network behavior. Features such as \feat{mean\_duration\_s} and \feat{std\_duration\_s} summarize how long the observed flows last, while \feat{mean\_bytes\_per\_packet}, \feat{std\_bytes\_per\_packet}, \feat{bytes\_per\_flow}, and \feat{packets\_per\_flow} describe how much traffic is exchanged per flow and per packet. These features are relevant for reconnaissance traffic which may produce many short and lightweight connections, especially during host or port probing. Similar features are included in standard NetFlow based feature sets for network intrusion detection~\cite{Sarhan_2021}.
 
 The \textbf{destination and port diversity} features capture how widely a source host communicates within a time window. \texttt{unique\_dst\_ip} measures the number of distinct destinations contacted, while \texttt{unique\_dst\_port}, \texttt{unique\_src\_port}, and \texttt{dst\_port\_per\_dst\_ip\_ratio} describe the diversity of contacted services and ports. These features are directly relevant to reconnaissance, because horizontal scans contact many hosts, vertical scans contact many ports on one host, and mixed scans may affect both dimensions~\cite{ring_detection_2018}.
 
@@ -464,7 +465,7 @@ An additional k-NN variant was included for evaluation based on the feature repr
 
 
 
-\subsection{Outlier-aware Denoising Autoencoder}
+\subsection{Outlier-aware Denoising Autoencoder(CPS-GUARD)}
 The next anomaly detection approach is based on the the CPS-GUARD method, which uses a semi-supervised deep autoencoder together with an outlier aware threshold selection procedure~\cite{catillo_cps-guard_2023}. Autoencoders are neural networks trained to reconstruct their own input. In anomaly detection, the underlying assumption is that the model trained on benign data will learn to reconstruct normal behavior well, while windows that differ from this learned normal behavior will result in a larger reconstruction error. This error can therefore be used as an anomaly score.
 
 The model is again trained only on benign training windows. The selected input features are first scaled using a preprocessing pipeline consisting of \texttt{RobustScaler} followed by \texttt{MinMaxScaler} with a target range of \([-1,1]\). Robust scaling is used to reduce the influence of extreme feature values, while the min-max scaling step matches the range of the autoencoder output layer, which uses a \texttt{tanh} activation function.
@@ -577,7 +578,7 @@ The models are evaluated using both window-level and range-level metrics. Window
 
 Window-level precision, recall and F1-score are computed from the number of true positives, false positives and false negatives over all evaluated windows. A true positive (TP) is a window that overlaps with an attack interval and is predicted as anomalous. A false positive (FP) is a benign window that is incorrectly predicted as anomalous, while a false negative (FN) is an attack window that is not detected. These metrics provide a more fine grained view and are useful for comparing how precisely each model identifies anomalous windows. 
 
-For the discussed range based precision, recall and F1-score, the true labels and model predictions are first processed separately for each source host. Consecutive positive windows are grouped into temporal ranges after sorting by timestamp. A true attack range is counted as detected when at least one predicted anomalous range overlaps with it. Predicted anomalous ranges that do not overlap with any true attack range are counted as range-level false positives, while true attack ranges without any overlapping prediction are counted as range-level false negatives. Hence, the range-based metric used here therefore follows an event-detection interpretation. It does not require every malicious window inside an attack interval to be classified correctly.
+For the discussed range-based precision, recall and F1-score, the true labels and model predictions are first processed separately for each source host. After sorting by timestamp, consecutive positive windows are grouped into temporal ranges. Two windows are considered consecutive when they belong to the same source host and the gap between their window start timestamps does not exceed \(1.5\) times the aggregation window length. A true attack range is counted as detected when at least one predicted anomalous range overlaps with it. Predicted anomalous ranges that do not overlap with any true attack range are counted as range-level false positives, while true attack ranges without any overlapping prediction are counted as range-level false negatives. Hence, the range-based metric used here therefore follows an event-detection interpretation. It does not require every malicious window inside an attack interval to be classified correctly.
 
 
 Window-level precision, recall and F1-score are defined as:

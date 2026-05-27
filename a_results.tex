@@ -1,4 +1,5 @@
 \chapter{Results}
+\label{ch:results}
 % - results and discussion
 % - compare models and hyperparameters and feature sets and windows and attacks (easy vs stealthy performance)
 % - And how it compares to IT
@@ -26,24 +27,15 @@ The experiments are evaluated in two stages. The main model selection is perform
 
 The results are reported using both window-level and range-level metrics.
 Window-level metrics treat each source-host window as an individual prediction
-and therefore measure how accurately the model classifies separate time windows.
-Range-level metrics instead group consecutive anomalous windows into alarm
-ranges and compare these ranges with the true attack intervals. This provides a
-more operational view of the results, since reconnaissance activity usually
-unfolds over a period of time rather than in a single isolated window.
+and therefore measure how accurately the model classifies separate time windows. Range-level metrics instead group consecutive anomalous windows into alarm ranges and compare these ranges with the true attack intervals. This provides a more operational view of the results, since reconnaissance activity usually unfolds over a period of time rather than in a single isolated window.
 
 Both views are used throughout the discussion. Window-level F1 indicates how
 precise the model is at the individual-window level, while range-level F1
 indicates whether complete reconnaissance scenarios are detected as temporal
 events and how many separate false alarm ranges are produced. A model may
-therefore have a moderate window-level score while still detecting the relevant
-attack interval, or a strong window-level score while producing fragmented
-alarms.
+therefore have a moderate window-level score while still detecting the relevant attack interval, or a strong window-level score while producing fragmented alarms.
 
-Unless stated otherwise, the tables in this chapter report configurations selected
-according to validation performance, followed by their corresponding test-set
-performance. Differences between validation and test results are interpreted as an
-indication of robustness and sensitivity to the underlying benign traffic period.
+Unless stated otherwise, the tables in this chapter report configurations selected according to validation performance, followed by their corresponding test-set performance.  The reported overall scores aggregate all evaluated reconnaissance scenarios, ranging from the more aggressive T5/T4 scans to the slower T1/T0 scans. Differences between validation and test results are interpreted as an indication of robustness and sensitivity to the underlying benign traffic period.
 
 
 
@@ -160,7 +152,7 @@ The two metrics can lead to different conclusions. A model may achieve a high ra
 
 The rankings also show why F1 should not be interpreted in isolation. Several configurations achieve similar F1 or range F1 values while making different trade-offs between precision and recall. In particular, a high range F1 can be obtained either by detecting almost all attack ranges with some additional false alarm ranges, or by producing very few false alarm ranges while missing one or more attack ranges. Although both types of error are relevant, missed attack ranges are more problematic in the context of early reconnaissance detection. A small number of additional false alarm ranges can still be inspected by an analyst, whereas a false negative means that an entire reconnaissance interval may remain unnoticed. Therefore, when configurations have comparable F1 scores, preference is given to models with no, or fewer, range false negatives. However, false positives remain important for operational usability, so the main ranking still uses F1 rather than a recall-weighted \(F_{\beta}\)-score.
 
-\subsection{Selected Models}
+\section{Selected Models}
 
 \begin{table}[htbp]
 \centering
@@ -332,29 +324,71 @@ The ADAM-inspired entropy baseline also transfers consistently to the test split
 \subsection{Computational Cost and Practical Trade-offs}
 \label{sec:computational_tradeoffs}
 
-\subsection{Cross-Environment Evaluation on Customer 2}
-\label{sec:customer2_cross_environment}
+Besides detection performance, the models also differ in computational cost. All evaluated model families are feasible for real-time use in the sense that their evaluation time remains below the smallest evaluated window length of 60 seconds. However, their efficiency differs substantially. 
+
+K-Means is the fastest model family, because each new window only has to be compared with a small number of centroids. CPS-GUARD is more expensive because each window must pass through the autoencoder, but inference still has a fixed cost once the model is trained. k-NN is the slowest option, since each evaluated window must be compared with the stored benign reference windows to compute nearest-neighbour distances. This cost becomes especially relevant for short windows, where both the number of reference windows and the number of evaluated windows are larger.
 
 
 
-\section{Influence of Window Size}
+
+
+
+\subsection{Detection Performance Across Attack Types}
+Table~\ref{tab:per_attack_selected_models} shows that the selected CPS-GUARD configuration is the only model that performs consistently well across all evaluated reconnaissance scenarios. It detects all test attack ranges and achieves near-perfect or perfect window-level F1 for every attack type. This indicates that its overall performance is not driven by only one easy attack scenario.
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1}
+\setlength{\tabcolsep}{8pt}
+\begin{adjustbox}{width=1\textwidth,center}
+\begin{tabular}{l l r r r r r r r r}
+\toprule
+Model & Metric & T1/T0 & T2 & T5/T4/T3 & APT \\
+\midrule
+CPS-GUARD & F1  & 1.000 & 0.994 & 1.000 & 1.000 \\
+CPS-GUARD & RF1 & 1.000 & 1.000 & 1.000 & 1.000 \\
+
+K-Means & F1  & 0.000 & 0.962 & 0.513 & 0.696 \\
+K-Means & RF1 & 0.000 & 0.133 & 0.316 & 0.316 \\
+
+k-NN & F1  & 0.016 & 0.955 & 0.379 & 0.655 \\
+k-NN & RF1 & 0.036 & 0.038 & 0.105 & 0.136 \\
+
+ADAM-inspired k-NN & F1  & 0.000 & 0.955 & 1.000 & 0.857 \\
+ADAM-inspired k-NN & RF1 & 0.000 & 1.000 & 1.000 & 1.000 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Test performance per reconnaissance scenario for the selected configurations. F1 denotes window-level F1 and RF1 denotes range-level F1.}
+\label{tab:per_attack_selected_models}
+\end{table}
+
+The other models show more scenario-dependent behaviour. K-Means and k-NN both detect parts of the T2, T5/T4/T3 and APT scenarios, but their range-level scores are much lower because their false positives are spread over many separate alarm ranges. The ADAM-inspired entropy baseline is very precise on the scenarios it detects, but it misses the T1/T0 scenario completely, showing that the entropy-only representation is less robust across different reconnaissance styles.
+
 % Temporal granularity trade-offs.
 
-\section{Influence of Feature Set}
-% What feature families worked and why.
+% \section{Influence of Feature Set}
+% % What feature families worked and why.
 
-\section{Detection Performance per Reconnaissance Scenario}
-% Loud scans, T2, T1/T0, low-and-slow.
+% \section{Detection Performance per Reconnaissance Scenario}
+% % Loud scans, T2, T1/T0, low-and-slow.
 
-\section{Validation--Test Generalization}
-% Discuss discrepancies and robustness.
+\section{Cross-Environment Evaluation on Customer 2}
+\label{sec:customer2_cross_environment}
+% while the strongest difference in features is the same for customer 2, the variance in values is much bigger for customer 2 which explains more FP.
 
-\section{Operational Discussion}
+
+\section{Operational Stuff}
 % SOC usefulness, false alarms, recommended configuration.
 % Optional short IT comparison here if you have it.
 
-\section{Limitations}
-% Injected attacks, limited environments, validation dependence, reduced k-NN sweep.
+From an operational perspective, the selected CPS-GUARD configuration is the most suitable candidate among the evaluated models. It preforms well across both evaluation metrics, meaning that. it not only identifies many malicious windows but also produces alarm ranges that correspond well to the injected reconnaissance intervals. 
+
+This shows why range-level evaluation is important for practical use. A detector that achieves high window-level recall can still be difficult to use if its false positives are spread over many separate alarm ranges. For K-Means and k-NN, while they detect many attack windows, they produce lower range precision. In a SOC setting, this would increase the number of alarm periods that an analyst has to inspect. Therefore, the most useful configuration is not necessarily the one with the highest window-level recall, but the one that provides a manageable number of meaningful alarm ranges.
+
+sht about feature sets and how they are environment specific and customer 2 :d.
+
 
 
 
