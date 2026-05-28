@@ -108,11 +108,12 @@ Feature set & \#configs & Mean RF1 & Mean F1 & Score \\
 The goal of this selection was not only to find the highest individual validation score, but to identify feature sets that performed well across multiple reconnaissance scenarios. Feature sets that were designed for one specific attack type were therefore interpreted with caution, even when they achieved strong results on that specific attack. Instead, preference was given to feature sets with broader coverage across the evaluated attacks. To summarize the validation results across feature sets, a compact selection score is used. This score gives equal weight to the mean validation range F1 and the mean validation window-level F1. Table~\ref{tab:validation_feature_set_ranking} shows the resulting ranking. 
 
 
-The number of configurations is not identical for all feature sets. The general-purpose feature sets were included in the full K-Means and autoencoder validation sweeps. In contrast, \feat{csv\_adam\_entropy} was evaluated as an ADAM-inspired k-NN baseline and therefore has fewer configurations. It will be further discussed in Section~\ref{sec:adam_baseline}. Similarly, \feat{csv\_horizontal\_scan\_clean} and \feat{csv\_ablation\_asymmetry\_only} were dropped earlier based on their weaker validation behavior, so their scores are based on a smaller set of configurations. 
+The number of configurations is not identical for all feature sets. The general-purpose feature sets were included in the full K-Means and autoencoder validation sweeps. In contrast, \feat{adam\_entropy} was evaluated as an ADAM-inspired k-NN baseline and therefore has fewer configurations. It will be further discussed in Section~\ref{sec:adam_baseline}. Similarly, \feat{horizontal\_scan\_clean} and \feat{ablation\_asymmetry\_only} were dropped earlier based on their weaker validation behavior, so their scores are based on a smaller set of configurations. 
 
-The two strongest feature sets are \feat{csv\_golden\_minimal} and \feat{csv\_omni\_core\_clean}, which both achieve the highest combined validation scores. \feat{csv\_low\_slow\_clean} is also retained because it is the next strongest general-purpose feature set and is relevant for slower reconnaissance behaviour. Although \feat{csv\_T2\_stealth\_scan} achieves competitive scores in some cases, it is more closely tied to a specific attack type and is therefore not selected.
+The two strongest feature sets are \feat{golden\_minimal} and \feat{omni\_core\_clean}, which both achieve the highest combined validation scores. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, its stronger validation score suggests that the additional features in \feat{omni\_core\_clean} do not necessarily improve detection performance.
+\feat{low\_slow\_clean} is also retained because it is the next strongest general-purpose feature set and is relevant for slower reconnaissance behaviour. Although \feat{T2\_stealth\_scan} achieves competitive scores in some cases, it is more closely tied to a specific attack type and is therefore not selected.
 
-The three highest-scoring general feature sets thus are \feat{csv\_golden\_minimal}, \texttt{csv\_omni\_core\_clean}, and \texttt{csv\_low\_slow\_clean}. These are therefore retained for the final cross-model comparison and for the reduced k-NN evaluation.
+The three highest-scoring general feature sets thus are \feat{golden\_minimal}, \texttt{omni\_core\_clean}, and \texttt{low\_slow\_clean}. These are therefore retained for the final cross-model comparison and for the reduced k-NN evaluation.
 
 
 
@@ -376,10 +377,216 @@ The other models show more scenario-dependent behaviour. K-Means and k-NN both d
 
 \section{Cross-Environment Evaluation on Customer 2}
 \label{sec:customer2_cross_environment}
+\textcolor{blue}{TODOt}
 % while the strongest difference in features is the same for customer 2, the variance in values is much bigger for customer 2 which explains more FP.
+To assess how well the selected modelling choices transfer to another OT environment, the representative configurations selected from the customer 1 validation results are also evaluated on customer 2. The results are shown in Table~\ref{tab:customer2_customer1_selected_configs}.
 
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{width=1.32\textwidth,center}
+\begin{tabular}{l p{0.22\textwidth} l l r r r r r r}
+\toprule
+Model & Feature set & Win. & Parameters
+& P & R & \textbf{F1}
+& RP & RR & \textbf{RF1} \\
+\midrule
+
+CPS-GUARD
+& \feat{golden\_minimal}
+& 60 s
+& 36-6-36, cont. $10^{-3}$
+& 0.005 & 0.025 & \textbf{0.009}
+& 0.008 & 0.273 & \textbf{0.015} \\
+
+K-Means
+& \feat{golden\_minimal}
+& 5 min
+& $c=10$, $q=0.999$
+& 0.005 & 0.034 & \textbf{0.009}
+& 0.034 & 0.300 & \textbf{0.062} \\
+
+k-NN
+& \feat{golden\_minimal}
+& 60 s
+& $k=10$, $q=0.9999$
+& -- & -- & \textbf{--}
+& -- & -- & \textbf{--} \\
+
+ADAM-inspired k-NN
+& \feat{adam\_entropy}
+& 1 h
+& $k=1$, $q=0.99999$
+& 1.000 & 0.088 & \textbf{0.162}
+& 1.000 & 0.300 & \textbf{0.462} \\
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Customer 2 performance of the configurations selected from the customer 1 validation results. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
+\label{tab:customer2_customer1_selected_configs}
+\end{table}
+
+The selected configurations preform much worse on customer 2. CPS-GUARD and K-Means both obtain very low window-level F1 and range-level F1, despite using configurations that performed well on customer 1. The ADAM inspired KNN preform a little better, it keeps perfect precision, but recall is low, meaning that it only detects a limited part of the injected attack activity. This indicates that the customer 1-selected threshold settings do not transfer well to the second environment.
+
+
+The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonzero} shows that the non-zero results are almost entirely caused by the T5/T4/T3 scenario, which is the most aggressive one, while the slower and more subtle scenarios are completely missed. For CPS-GUARD and K-Means, even the T5/T4/T3 detection comes with very low precision, which means that the models raise many false alarms while detecting the attack windows. Only the ADAM inspired k-NN detects T5/T4/T3 cleanly, but does not provide broad coverage across the attack scenarios.
+
+These results suggest that the main issue is not only the choice of model family, but also the environment-specific calibration of the anomaly threshold. In unsupervised anomaly detection, the anomaly score distribution depends on the benign traffic of the target environment. If the benign traffic in customer 2 is more variable, or contains behaviour that resembles reconnaissance indicators, then a threshold that is appropriate for customer 1 can become too strict or too permissive for customer 2. This can lead either to missed attacks or to many false positives.
+
+A second analysis therefore allows the threshold or contamination value to be selected using the customer 2 results. For CPS-GUARD, K-Means and k-NN, the feature set is also allowed to vary between \feat{golden\_minimal} and \feat{omni\_core\_clean}.. This comparison is shown in Table~\ref{tab:customer2_tuned_configs}. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, this also tests whether the additional features in \feat{omni\_core\_clean} are useful in the second environment.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{l l r r r r}
+\toprule
+Model & Attack & P & R & \textbf{F1} & \textbf{RF1} \\
+\midrule
+CPS-GUARD 
+& T5/T4/T3 
+& 0.021 & 1.000 & \textbf{0.041} & \textbf{0.058} \\
+
+K-Means 
+& T5/T4/T3 
+& 0.019 & 1.000 & \textbf{0.038} & \textbf{0.222} \\
+
+
+k-NN
+& -- 
+& -- & -- & \textbf{--} & \textbf{--} \\
+
+ADAM-inspired k-NN 
+& T5/T4/T3 
+& 1.000 & 1.000 & \textbf{1.000} & \textbf{1.000} \\
+\bottomrule
+\end{tabular}
+\caption{Non-zero customer 2 per-attack results for the configurations selected on customer 1 validation. P/R/F1 denote window-level precision, recall and F1, while RF1 denotes range-level F1. All omitted attack/model combinations obtain both window-level F1 and range-level F1 equal to zero.}
+\label{tab:customer2_c1_selected_per_attack_nonzero}
+\end{table}
+
+This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
+
+The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult. This indicates that customer 2 contains benign background traffic that overlaps more strongly with the indicators used for reconnaissance detection, or at least produces a higher number of windows that appear anomalous according to the learned models. Without additional operational context, it is not possible to determine whether this is caused by normal customer-specific traffic variability, maintenance behaviour, misconfiguration, or already suspicious activity in the benign period, in combination with overfitting of the selected models to the environment of customer 1. 
+
+
+This environment dependence is not unexpected in OT networks, where communication patterns are very specific to the devices, protocls, maintainance routines and general operation of the site. A feature set or threshold that separates reconnaissance activity clearly from benign traffic in one environment may overlap much more with benign behaviour in another. This suggests that future evaluations should include more environments during model selection, rather than selecting configurations only on a single customer. 
+
+
+
+
+
+
+
+
+\textcolor{blue}{Table of best preforming ADAM configuation for customer 2.}
+
+Overall, the customer 2 evaluation shows that the proposed approach is likely sensitive to the target environment
+
+% sth about how this is bad and about how we try to see if there are different threshold/contaminiations values for the same configurations what might show better results. Also maybe the more complete feature set omni core clear whcih is like the golden minimal plus some other stuff might preform better. Also sth about precision vs recall. how recall is good for only the very obvious attacks for the customer 1 configurations.
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2.5pt}
+\begin{adjustbox}{width=1.35\textwidth,center}
+\begin{tabular}{l l p{0.21\textwidth} l l r r r r r r}
+\toprule
+Model & Basis & Feature set & Win. & Parameters
+& P & R & \textbf{F1}
+& RP & RR & \textbf{RF1} \\
+
+\midrule
+
+CPS-GUARD
+& RF1
+& \feat{golden\_minimal}
+& 60 s
+& 36-6-36, cont. $10^{-4}$
+& 0.006 & 0.025 & \textbf{0.009}
+& 0.077 & 0.273 & \textbf{0.120} \\
+
+CPS-GUARD
+& F1
+& \feat{golden\_minimal}
+& 60 s
+& 36-6-36, cont. $10^{-2}$
+& 0.064 & 0.827 & \textbf{0.119}
+& 0.001 & 0.818 & \textbf{0.003} \\
+
+\midrule
+
+K-Means
+& RF1
+& \feat{omni\_core\_clean}
+& 5 min
+& $c=10$, $q=0.999999$
+& 0.008 & 0.034 & \textbf{0.013}
+& 0.273 & 0.300 & \textbf{0.286} \\
+
+K-Means
+& F1
+& \feat{golden\_minimal}
+& 5 min
+& $c=10$, $q=1.0$
+& 0.010 & 0.034 & \textbf{0.016}
+& 0.040 & 0.300 & \textbf{0.071} \\
+
+\midrule
+
+k-NN
+& RF1
+& \feat{omni\_core\_clean}
+& 60 s
+& $k=\,$--, $q=\,$--
+& -- & -- & \textbf{--}
+& -- & -- & \textbf{--} \\
+
+k-NN
+& F1
+& \feat{omni\_core\_clean}
+& 60 s
+& $k=\,$--, $q=\,$--
+& -- & -- & \textbf{--}
+& -- & -- & \textbf{--} \\
+
+\midrule
+
+ADAM-inspired k-NN
+& RF1
+& \feat{adam\_entropy}
+& 1 h
+& $k=1$, $q=0.99999$
+& 1.000 & 0.088 & \textbf{0.162}
+& 1.000 & 0.300 & \textbf{0.462} \\
+
+ADAM-inspired k-NN
+& F1
+& \feat{adam\_entropy}
+& 1 h
+& $k=1$, $q=0.99999$
+& 1.000 & 0.088 & \textbf{0.162}
+& 1.000 & 0.300 & \textbf{0.462} \\
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Customer 2 performance of the best contamination and threshold values and best preforming feature set chosen between \texttt{golden\_minimal} and \texttt{omni\_core\_clean}. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
+\label{tab:customer2_tuned_configs}
+\end{table}
+
+So
+
+% Refer to per attack break down in appendix. FOr different thresholds better result. Variable threshold, what does it mean and how will we know which threhold to use for each environment? DOes the threshold depend on how different the attacks are from the benign data? actually yes probably. Maybe show a boxplot of how the benign features here overlap more wiht the malign. Also maybe possibly there are more sus things going in this custmoer and maybe there are some misconfgruations or maybe even scans going on in the custoner 2 data idk.
 
 \section{Operational Stuff}
+\textcolor{blue}{TODO}
 % SOC usefulness, false alarms, recommended configuration.
 % Optional short IT comparison here if you have it.
 
