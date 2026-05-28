@@ -434,11 +434,6 @@ The selected configurations preform much worse on customer 2. CPS-GUARD and K-Me
 
 
 The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonzero} shows that the non-zero results are almost entirely caused by the T5/T4/T3 scenario, which is the most aggressive one, while the slower and more subtle scenarios are completely missed. For CPS-GUARD and K-Means, even the T5/T4/T3 detection comes with very low precision, which means that the models raise many false alarms while detecting the attack windows. Only the ADAM inspired k-NN detects T5/T4/T3 cleanly, but does not provide broad coverage across the attack scenarios.
-
-These results suggest that the main issue is not only the choice of model family, but also the environment-specific calibration of the anomaly threshold. In unsupervised anomaly detection, the anomaly score distribution depends on the benign traffic of the target environment. If the benign traffic in customer 2 is more variable, or contains behaviour that resembles reconnaissance indicators, then a threshold that is appropriate for customer 1 can become too strict or too permissive for customer 2. This can lead either to missed attacks or to many false positives.
-
-A second analysis therefore allows the threshold or contamination value to be selected using the customer 2 results. For CPS-GUARD, K-Means and k-NN, the feature set is also allowed to vary between \feat{golden\_minimal} and \feat{omni\_core\_clean}.. This comparison is shown in Table~\ref{tab:customer2_tuned_configs}. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, this also tests whether the additional features in \feat{omni\_core\_clean} are useful in the second environment.
-
 \begin{table}[htbp]
 \centering
 \small
@@ -470,25 +465,11 @@ ADAM-inspired k-NN
 \label{tab:customer2_c1_selected_per_attack_nonzero}
 \end{table}
 
-This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
+These results suggest that the main issue is not only the choice of model family, but also the environment-specific calibration of the anomaly threshold. In unsupervised anomaly detection, the anomaly score distribution depends on the benign traffic of the target environment. If the benign traffic in customer 2 is more variable, or contains behaviour that resembles reconnaissance indicators, then a threshold that is appropriate for customer 1 can become too strict or too permissive for customer 2. This can lead either to missed attacks or to many false positives.
 
-The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult. This indicates that customer 2 contains benign background traffic that overlaps more strongly with the indicators used for reconnaissance detection, or at least produces a higher number of windows that appear anomalous according to the learned models. Without additional operational context, it is not possible to determine whether this is caused by normal customer-specific traffic variability, maintenance behaviour, misconfiguration, or already suspicious activity in the benign period, in combination with overfitting of the selected models to the environment of customer 1. 
-
-
-This environment dependence is not unexpected in OT networks, where communication patterns are very specific to the devices, protocls, maintainance routines and general operation of the site. A feature set or threshold that separates reconnaissance activity clearly from benign traffic in one environment may overlap much more with benign behaviour in another. This suggests that future evaluations should include more environments during model selection, rather than selecting configurations only on a single customer. 
+A second analysis therefore allows the threshold or contamination value to be selected using the customer 2 results. For CPS-GUARD, K-Means and k-NN, the feature set is also allowed to vary between \feat{golden\_minimal} and \feat{omni\_core\_clean}.. This comparison is shown in Table~\ref{tab:customer2_tuned_configs}. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, this also tests whether the additional features in \feat{omni\_core\_clean} are useful in the second environment.
 
 
-
-
-
-
-
-
-\textcolor{blue}{Table of best preforming ADAM configuation for customer 2.}
-
-Overall, the customer 2 evaluation shows that the proposed approach is likely sensitive to the target environment
-
-% sth about how this is bad and about how we try to see if there are different threshold/contaminiations values for the same configurations what might show better results. Also maybe the more complete feature set omni core clear whcih is like the golden minimal plus some other stuff might preform better. Also sth about precision vs recall. how recall is good for only the very obvious attacks for the customer 1 configurations.
 
 \begin{table}[htbp]
 \centering
@@ -580,6 +561,30 @@ ADAM-inspired k-NN
 \caption{Customer 2 performance of the best contamination and threshold values and best preforming feature set chosen between \texttt{golden\_minimal} and \texttt{omni\_core\_clean}. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
 \label{tab:customer2_tuned_configs}
 \end{table}
+
+
+This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
+
+The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult. This indicates that customer 2 contains benign background traffic that overlaps more strongly with the indicators used for reconnaissance detection, or at least produces a higher number of windows that appear anomalous according to the learned models. Without additional operational context, it is not possible to determine whether this is caused by normal customer-specific traffic variability, maintenance behaviour, misconfiguration, or already suspicious activity in the benign period, in combination with overfitting of the selected models to the environment of customer 1. 
+
+
+This environment dependence is not unexpected in OT networks, where communication patterns are very specific to the devices, protocls, maintainance routines and general operation of the site. A feature set or threshold that separates reconnaissance activity clearly from benign traffic in one environment may overlap much more with benign behaviour in another. This suggests that future evaluations should include more environments during model selection, rather than selecting configurations only on a single customer. The best configuration may not be the one that achieves the highest score on one environment, but the one that provides the best trade-off across several environments.
+
+This is illustrated by the ADAM-inspired k-NN baseline. Although it was not the strongest configuration on customer 1, it is the  precise configuration among the customer 2 results.
+
+
+
+
+
+
+
+
+\textcolor{blue}{Table of best preforming ADAM configuation for customer 2.}
+
+Overall, the customer 2 evaluation shows that the proposed approach is likely sensitive to the target environment
+
+% sth about how this is bad and about how we try to see if there are different threshold/contaminiations values for the same configurations what might show better results. Also maybe the more complete feature set omni core clear whcih is like the golden minimal plus some other stuff might preform better. Also sth about precision vs recall. how recall is good for only the very obvious attacks for the customer 1 configurations.
+
 
 So
 
