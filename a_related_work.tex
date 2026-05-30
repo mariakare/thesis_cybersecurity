@@ -45,7 +45,19 @@ A final limitation of much OT anomaly detection research is that it focuses main
 \section{Early-Stage Detection and Reconnaissance}
 \label{sec:early_stage_detection}
 
-The focus on physical process variables can be understood through the Cyber Kill Chain (CKC), which as depicted in Figure~\ref{fig:cyber_kill_chain}, describes an intrusion as a sequence of stages: reconnaissance, weaponization, delivery, exploitation, installation, command and control, and action on objectives~\cite{behdadnia_early-stage_2025}. In the early stages, the attacker gathers information about the target environment, prepares or delivers the attack, and attempts to gain a foothold. In the later stages, the attacker establishes persistence, communicates with compromised systems, and ultimately executes their objective. In an OT context, this final objective may involve manipulating the physical process, for example through false data or command injection~\cite{behdadnia_early-stage_2025}. Process-level anomaly detection mainly observes these later stages, where the attacker has already reached the point of affecting the physical infrastructure. While such detection is still important, it leaves less time for operators to react before operational consequences occur.
+The focus on physical process variables can be understood through frameworks such as MITRE ATT\&CK. MITRE ATT\&CK is a knowledge base of adversary tactics and techniques based on real-world observations, where tactics describe the adversary's objective and techniques describe how that objective may be achieved~\cite{mitre_attack_2026}. For industrial environments, MITRE ATT\&CK for ICS provides a specific matrix for attacks against industrial control systems. As shown in Figure~\ref{fig:mitre_attack_ics_tactics}, the matrix currently contains twelve tactics, ranging from Initial Access and Discovery to later objectives such as Inhibit Response Function, Impair Process Control and Impact~\cite{mitre_ics_matrix_2026}. This is relevant for OT anomaly detection because many process-level detection methods mainly observe attacks when they have already reached the physical process. While detecting these later effects remains important, it gives operators less time to investigate and respond before operational consequences occur.
+
+
+
+
+
+
+
+
+
+
+
+the Cyber Kill Chain (CKC), which as depicted in Figure~\ref{fig:cyber_kill_chain}, describes an intrusion as a sequence of stages: reconnaissance, weaponization, delivery, exploitation, installation, command and control, and action on objectives~\cite{behdadnia_early-stage_2025}. In the early stages, the attacker gathers information about the target environment, prepares or delivers the attack, and attempts to gain a foothold. In the later stages, the attacker establishes persistence, communicates with compromised systems, and ultimately executes their objective. In an OT context, this final objective may involve manipulating the physical process, for example through false data or command injection~\cite{behdadnia_early-stage_2025}. Process-level anomaly detection mainly observes these later stages, where the attacker has already reached the point of affecting the physical infrastructure. While such detection is still important, it leaves less time for operators to react before operational consequences occur.
 
 For this reason, early-stage detection has become an important direction for OT security. The initial stages of an intrusion can last much longer than the final execution phase, providing defenders with more time to detect suspicious behavior and respond before the attack reaches its objective~\cite{behdadnia_early-stage_2025}
 

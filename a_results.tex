@@ -375,11 +375,13 @@ The other models show more scenario-dependent behaviour. K-Means and k-NN both d
 % \section{Detection Performance per Reconnaissance Scenario}
 % % Loud scans, T2, T1/T0, low-and-slow.
 
+
 \section{Cross-Environment Evaluation on Customer 2}
 \label{sec:customer2_cross_environment}
 \textcolor{blue}{TODOt}
 % while the strongest difference in features is the same for customer 2, the variance in values is much bigger for customer 2 which explains more FP.
-To assess how well the selected modelling choices transfer to another OT environment, the representative configurations selected from the customer 1 validation results are also evaluated on customer 2. The results are shown in Table~\ref{tab:customer2_customer1_selected_configs}.
+To assess how well the selected modelling choices transfer to another OT environment, the representative configurations selected from the customer 1 validation results are also evaluated on customer 2. Like customer 1, the ground truth only describes injected reconnaissance scenarios. All other traffic is treated as benign.
+The results are shown in Table~\ref{tab:customer2_customer1_selected_configs}.
 
 
 \begin{table}[htbp]
@@ -467,7 +469,7 @@ ADAM-inspired k-NN
 
 These results suggest that the main issue is not only the choice of model family, but also the environment-specific calibration of the anomaly threshold. In unsupervised anomaly detection, the anomaly score distribution depends on the benign traffic of the target environment. If the benign traffic in customer 2 is more variable, or contains behaviour that resembles reconnaissance indicators, then a threshold that is appropriate for customer 1 can become too strict or too permissive for customer 2. This can lead either to missed attacks or to many false positives.
 
-A second analysis therefore allows the threshold or contamination value to be selected using the customer 2 results. For CPS-GUARD, K-Means and k-NN, the feature set is also allowed to vary between \feat{golden\_minimal} and \feat{omni\_core\_clean}.. This comparison is shown in Table~\ref{tab:customer2_tuned_configs}. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, this also tests whether the additional features in \feat{omni\_core\_clean} are useful in the second environment.
+A second analysis therefore allows the threshold or contamination value to be selected using the customer 2 results. For CPS-GUARD, K-Means and k-NN, the feature set is also allowed to vary between \feat{golden\_minimal} and \feat{omni\_core\_clean}. This comparison is shown in Table~\ref{tab:customer2_tuned_configs}. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, this also tests whether the additional features in \feat{omni\_core\_clean} are useful in the second environment.
 
 
 
@@ -565,7 +567,35 @@ ADAM-inspired k-NN
 
 This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
 
-The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult. This indicates that customer 2 contains benign background traffic that overlaps more strongly with the indicators used for reconnaissance detection, or at least produces a higher number of windows that appear anomalous according to the learned models. Without additional operational context, it is not possible to determine whether this is caused by normal customer-specific traffic variability, maintenance behaviour, misconfiguration, or already suspicious activity in the benign period, in combination with overfitting of the selected models to the environment of customer 1. 
+The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult.  Under the original injected-attack-only labels, this appears as a large false-positive problem. However, this interpretation assumes that all non-injected customer traffic is benign.
+
+To verify this assumption, the top flagged anomalies in customer 2 were investigated. This analysis showed that at least part of the detected traffic corresponds to real suspicious activity in the customer environment. Specifically, the customer had an Internet exposed service on port 86, and a large number of external source IPs were observed connecting to this port. This traffic corresponded to a brute-force, password guessing event against the exposed service.
+
+The timing of this activity is shown in Figure~\ref{fig:customer2_port86_timeline}. The port-86 traffic appears as a concentrated burst around the end of March, and the fixed customer 2 test interval overlaps with most of this activity. This explains the exceptionally low precision scores of the models evaluated on this test data, with the high FP rate being contributed to by this real attack activity. This shows that the models can detect relevant suspicious behaviour in the operational background traffic beyond reconnaissance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/customer2_all_port86_traffic_over_time.pdf}
+\caption{Destination-port-86 traffic over time in customer 2, aggregated into 5-minute bins. The vertical lines indicate the start and end of the fixed test interval.}
+\label{fig:customer2_port86_timeline}
+\end{figure}
+
+
+An IP geolocation map in Figure illustrates the confirmed port-86 incident. The 43,446 external source IPs were distributed across many locations between 30 March 17:00 UTC and 31 March 09:00 UTC, supporting the interpretation of a broad Internet-sourced brute-force event.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/map.png}
+\caption{Approximate geographic distribution of the external source IPs involved in the confirmed port-86 brute-force incident in customer 2. The visualization is based on IP geolocation for 43,446 source IPs observed between 30 March 17:00 UTC and 31 March 09:00 UTC.}
+\label{fig:customer2_port86_ipinfo_map}
+\end{figure}
+
+
+
+
+
+
+
 
 
 This environment dependence is not unexpected in OT networks, where communication patterns are very specific to the devices, protocls, maintainance routines and general operation of the site. A feature set or threshold that separates reconnaissance activity clearly from benign traffic in one environment may overlap much more with benign behaviour in another. This suggests that future evaluations should include more environments during model selection, rather than selecting configurations only on a single customer. The best configuration may not be the one that achieves the highest score on one environment, but the one that provides the best trade-off across several environments.
