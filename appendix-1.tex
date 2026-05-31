@@ -328,121 +328,121 @@ Rank & Model & Feature set & Win. & Param. & Thr.
 
 
 
-\begin{table}[htbp]
-\centering
-\scriptsize
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{3pt}
-\caption{TODO}
-\label{tab:customer2_overall_selected_per_attack}
-\begin{adjustbox}{width=1.25\textwidth,center}
-\begin{tabular}{l l l l l r r r r r r r r}
-\toprule
-Basis & Model & Feature set & Win. & Parameters
-& \multicolumn{2}{c}{T1/T0}
-& \multicolumn{2}{c}{T2}
-& \multicolumn{2}{c}{T5/T4/T3}
-& \multicolumn{2}{c}{APT} \\
-\cmidrule(lr){6-7}
-\cmidrule(lr){8-9}
-\cmidrule(lr){10-11}
-\cmidrule(lr){12-13}
-& & & & 
-& F1 & RF1 & F1 & RF1 & F1 & RF1 & F1 & RF1 \\
-\midrule
+% \begin{table}[htbp]
+% \centering
+% \scriptsize
+% \renewcommand{\arraystretch}{1.15}
+% \setlength{\tabcolsep}{3pt}
+% \caption{TODO}
+% \label{tab:customer2_overall_selected_per_attack}
+% \begin{adjustbox}{width=1.25\textwidth,center}
+% \begin{tabular}{l l l l l r r r r r r r r}
+% \toprule
+% Basis & Model & Feature set & Win. & Parameters
+% & \multicolumn{2}{c}{T1/T0}
+% & \multicolumn{2}{c}{T2}
+% & \multicolumn{2}{c}{T5/T4/T3}
+% & \multicolumn{2}{c}{APT} \\
+% \cmidrule(lr){6-7}
+% \cmidrule(lr){8-9}
+% \cmidrule(lr){10-11}
+% \cmidrule(lr){12-13}
+% & & & & 
+% & F1 & RF1 & F1 & RF1 & F1 & RF1 & F1 & RF1 \\
+% \midrule
 
-RF1
-& CPS-GUARD
-& \feat{golden\_minimal}
-& 60 s
-& 36-6-36, cont. $10^{-4}$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 0.044 & 0.400
-& 0.000 & 0.000 \\
+% RF1
+% & CPS-GUARD
+% & \feat{golden\_minimal}
+% & 60 s
+% & 36-6-36, cont. $10^{-4}$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 0.044 & 0.400
+% & 0.000 & 0.000 \\
 
-RF1
-& K-Means
-& \feat{omni\_core\_clean}
-& 5 min
-& $c=10$, $q=0.999999$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 0.062 & 0.750
-& 0.000 & 0.000 \\
+% RF1
+% & K-Means
+% & \feat{omni\_core\_clean}
+% & 5 min
+% & $c=10$, $q=0.999999$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 0.062 & 0.750
+% & 0.000 & 0.000 \\
 
-RF1
-& k-NN
-& \feat{omni\_core\_clean}
-& 1 h
-& $k=1$, $q=1.0$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 0.182 & 0.500
-& 0.000 & 0.000 \\
+% RF1
+% & k-NN
+% & \feat{omni\_core\_clean}
+% & 1 h
+% & $k=1$, $q=1.0$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 0.182 & 0.500
+% & 0.000 & 0.000 \\
 
-RF1
-& ADAM-inspired k-NN
-& \feat{adam\_entropy}
-& 1 h
-& $k=3$, $q=0.99999$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 1.000 & 1.000
-& -- & -- \\
+% RF1
+% & ADAM-inspired k-NN
+% & \feat{adam\_entropy}
+% & 1 h
+% & $k=1$, $q=0.99999$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 1.000 & 1.000
+% & 0.000 & 0.000 \\
 
-\midrule
+% \midrule
 
-F1
-& CPS-GUARD
-& \feat{golden\_minimal}
-& 60 s
-& 36-6-36, cont. $10^{-2}$
-& 0.000 & 0.001
-& 0.315 & 0.001
-& 0.016 & 0.004
-& 0.045 & 0.005 \\
+% F1
+% & CPS-GUARD
+% & \feat{golden\_minimal}
+% & 60 s
+% & 36-6-36, cont. $10^{-2}$
+% & 0.000 & 0.001
+% & 0.315 & 0.001
+% & 0.016 & 0.004
+% & 0.045 & 0.005 \\
 
-F1
-& K-Means
-& \feat{golden\_minimal}
-& 5 min
-& $c=10$, $q=1.0$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 0.078 & 0.250
-& 0.000 & 0.000 \\
+% F1
+% & K-Means
+% & \feat{golden\_minimal}
+% & 5 min
+% & $c=10$, $q=1.0$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 0.078 & 0.250
+% & 0.000 & 0.000 \\
 
-F1
-& k-NN
-& \feat{omni\_core\_clean}
-& 1 h
-& $k=1$, $q=0.9999$
-& 0.000 & 0.000
-& 0.148 & 0.074
-& 0.102 & 0.194
-& 0.000 & 0.000 \\
+% F1
+% & k-NN
+% & \feat{golden\_minimal}
+% & 60 s
+% & $k=10$, $q=0.999$
+% & 0.001 & 0.001
+% & 0.377 & 0.001
+% & 0.017 & 0.003
+% & 0.054 & 0.004 \\
 
-F1
-& ADAM-inspired k-NN
-& \feat{adam\_entropy}
-& 1 h
-& $k=3$, $q=0.99999$
-& 0.000 & 0.000
-& 0.000 & 0.000
-& 1.000 & 1.000
-& -- & -- \\
+% F1
+% & ADAM-inspired k-NN
+% & \feat{adam\_entropy}
+% & 1 h
+% & $k=1$, $q=0.99999$
+% & 0.000 & 0.000
+% & 0.000 & 0.000
+% & 1.000 & 1.000
+% & 0.000 & 0.000 \\
 
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
+% \bottomrule
+% \end{tabular}
+% \end{adjustbox}
+% \end{table}
 
 \begin{table}[htbp]
 \centering
 \tiny
 \renewcommand{\arraystretch}{1.08}
-\setlength{\tabcolsep}{2pt}
+\setlength{\tabcolsep}{4pt}
 \caption{TODO}
 \label{tab:appendix_customer2_selected_per_attack}
 \begin{adjustbox}{width=1.32\textwidth,center}
@@ -495,21 +495,21 @@ Model & Basis & Configuration & Attack & P & R & \textbf{F1} & RP & RR & \textbf
 
 \multirow{4}{*}{k-NN}
 & \multirow{4}{*}{F1}
-& \multirow{4}{=}{\feat{omni\_core\_clean}, 60 s, \(k=\)--, \(q=\)--}
-& T1/T0 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & T2 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & T5/T4/T3 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & APT & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
+& \multirow{4}{=}{\feat{golden\_minimal}, 60 s, (k=10), (q=0.999)}
+& T1/T0 & 0.001 & 0.500 & \textbf{0.001} & 0.000 & 0.333 & \textbf{0.001} \\
+& & & T2 & 0.235 & 0.957 & \textbf{0.377} & 0.000 & 1.000 & \textbf{0.001} \\
+& & & T5/T4/T3 & 0.009 & 1.000 & \textbf{0.017} & 0.001 & 1.000 & \textbf{0.003} \\
+& & & APT & 0.028 & 0.974 & \textbf{0.054} & 0.002 & 1.000 & \textbf{0.004} \\
 
 \addlinespace
 
 \multirow{4}{*}{k-NN}
 & \multirow{4}{*}{RF1}
-& \multirow{4}{=}{\feat{omni\_core\_clean}, 60 s, \(k=\)--, \(q=\)--}
-& T1/T0 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & T2 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & T5/T4/T3 & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
-& & & APT & -- & -- & \textbf{--} & -- & -- & \textbf{--} \\
+& \multirow{4}{=}{\feat{golden\_minimal}, 60 s, \(k=10\), \(q=1.0\)}
+& T1/T0 & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
+& & & T2 & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
+& & & T5/T4/T3 & 0.190 & 0.457 & \textbf{0.269} & 0.081 & 1.000 & \textbf{0.150} \\
+& & & APT & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
 
 \midrule
 
@@ -517,9 +517,9 @@ Model & Basis & Configuration & Attack & P & R & \textbf{F1} & RP & RR & \textbf
 & \multirow{4}{*}{F1/RF1}
 & \multirow{4}{=}{\feat{adam\_entropy}, 1 h, \(k=1\), selected \(q\)}
 & T1/T0 & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
-& & & T2 & 0.002 & 0.136 & \textbf{0.003} & 0.001 & 1.000 & \textbf{0.001} \\
+& & & T2 & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
 & & & T5/T4/T3 & 1.000 & 1.000 & \textbf{1.000} & 1.000 & 1.000 & \textbf{1.000} \\
-& & & APT & 0.125 & 0.143 & \textbf{0.133} & 0.167 & 0.250 & \textbf{0.200} \\
+& & & APT & 0.000 & 0.000 & \textbf{0.000} & 0.000 & 0.000 & \textbf{0.000} \\
 
 \bottomrule
 \end{tabular}

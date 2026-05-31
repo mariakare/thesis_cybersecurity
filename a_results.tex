@@ -407,8 +407,8 @@ k-NN
 & \feat{golden\_minimal}
 & 60 s
 & $k=10$, $q=0.9999$
-& -- & -- & \textbf{--}
-& -- & -- & \textbf{--} \\
+& 0.028 & 0.085 & \textbf{0.042}
+& 0.007 & 0.727 & \textbf{0.014} \\
 
 ADAM-inspired k-NN
 & \feat{adam\_entropy}
@@ -424,10 +424,10 @@ ADAM-inspired k-NN
 \label{tab:customer2_customer1_selected_configs}
 \end{table}
 
-The selected configurations preform much worse on customer 2. CPS-GUARD and K-Means both obtain very low window-level F1 and range-level F1, despite using configurations that performed well on customer 1. The ADAM inspired KNN preform a little better, it keeps perfect precision, but recall is low, meaning that it only detects a limited part of the injected attack activity. This indicates that the customer 1-selected threshold settings do not transfer well to the second environment.
+The selected configurations preform much worse on customer 2. CPS-GUARD and K-Means both obtain very low window-level F1 and range-level F1, despite using configurations that performed well on customer 1. The customer 1-selected $k$-NN configuration performs slightly better at the window level than CPS-GUARD and K-Means, but its range-level F1 remains very low. The ADAM inspired $k$-NN preform a little better, it keeps perfect precision, but recall is low, meaning that it only detects a limited part of the injected attack activity. This indicates that the customer 1-selected threshold settings do not transfer well to the second environment.
 
 
-The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonzero} shows that the non-zero results are almost entirely caused by the T5/T4/T3 scenario, which is the most aggressive one, while the slower and more subtle scenarios are completely missed. For CPS-GUARD and K-Means, even the T5/T4/T3 detection comes with very low precision, which means that the models raise many false alarms while detecting the attack windows. Only the ADAM inspired k-NN detects T5/T4/T3 cleanly, but does not provide broad coverage across the attack scenarios.
+The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonzero} shows that the non-zero results are almost entirely caused by the T5/T4/T3 scenarios, which are the more aggressive ones, while the slower and more subtle scenarios are completely missed. For CPS-GUARD and K-Means, even the T5/T4/T3 detection comes with very low precision, which means that the models raise many false alarms while detecting the attack windows. The $k$-NN also produces non-zero results for T2, T5/T4/T3 and APT, but the corresponding range-level F1-scores remain low. The ADAM inspired $k$-NN detects T5/T4/T3 cleanly, but does not provide broad coverage across the attack scenarios.
 \begin{table}[htbp]
 \centering
 \small
@@ -438,22 +438,31 @@ The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonz
 \toprule
 Model & Attack & P & R & \textbf{F1} & \textbf{RF1} \\
 \midrule
-CPS-GUARD 
-& T5/T4/T3 
+
+CPS-GUARD
+& T5/T4/T3
 & 0.021 & 1.000 & \textbf{0.041} & \textbf{0.058} \\
 
-K-Means 
-& T5/T4/T3 
+K-Means
+& T5/T4/T3
 & 0.019 & 1.000 & \textbf{0.038} & \textbf{0.222} \\
 
+k-NN
+& T2
+& 0.062 & 0.056 & \textbf{0.059} & \textbf{0.007} \\
 
 k-NN
-& -- 
-& -- & -- & \textbf{--} & \textbf{--} \\
+& T5/T4/T3
+& 0.032 & 1.000 & \textbf{0.062} & \textbf{0.021} \\
 
-ADAM-inspired k-NN 
-& T5/T4/T3 
+k-NN
+& APT
+& 0.014 & 0.129 & \textbf{0.025} & \textbf{0.028} \\
+
+ADAM-inspired k-NN
+& T5/T4/T3
 & 1.000 & 1.000 & \textbf{1.000} & \textbf{1.000} \\
+
 \bottomrule
 \end{tabular}
 
@@ -511,7 +520,7 @@ K-Means
 & F1
 & \feat{golden\_minimal}
 & 5 min
-& $c=10$, $q=1.0$
+& $c=10$, $q=0.9999999$
 & 0.010 & 0.034 & \textbf{0.016}
 & 0.040 & 0.300 & \textbf{0.071} \\
 
@@ -519,37 +528,31 @@ K-Means
 
 k-NN
 & RF1
-& \feat{omni\_core\_clean}
+& \feat{golden\_minimal}
 & 60 s
-& $k=\,$--, $q=\,$--
-& -- & -- & \textbf{--}
-& -- & -- & \textbf{--} \\
+& $k=10$, $q=0.9999999$
+& 0.056 & 0.011 & \textbf{0.019}
+& 0.022 & 0.273 & \textbf{0.040} \\
 
 k-NN
 & F1
-& \feat{omni\_core\_clean}
+& \feat{golden\_minimal}
 & 60 s
-& $k=\,$--, $q=\,$--
-& -- & -- & \textbf{--}
-& -- & -- & \textbf{--} \\
+& $k=10$, $q=0.999$
+& 0.079 & 0.958 & \textbf{0.146}
+& 0.001 & 0.818 & \textbf{0.002} \\
 
 \midrule
 
 ADAM-inspired k-NN
-& RF1
+& RF1/F1
 & \feat{adam\_entropy}
 & 1 h
 & $k=1$, $q=0.99999$
 & 1.000 & 0.088 & \textbf{0.162}
 & 1.000 & 0.300 & \textbf{0.462} \\
 
-ADAM-inspired k-NN
-& F1
-& \feat{adam\_entropy}
-& 1 h
-& $k=1$, $q=0.99999$
-& 1.000 & 0.088 & \textbf{0.162}
-& 1.000 & 0.300 & \textbf{0.462} \\
+
 
 \bottomrule
 \end{tabular}
@@ -559,7 +562,7 @@ ADAM-inspired k-NN
 \end{table}
 
 
-This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
+This seems to improves some results but only to a limited degree. For CPS-GUARD, selecting for window-level F1 increases recall substantially, but precision remains low and the range-level F1 stays close to zero. This means that many attack windows are detected, but the predicted alarm ranges are dominated by false positives. The same pattern is visible for the F1-selected $k$-NN configuration. K-Means obtains its best range-level result with \feat{omni\_core\_clean}, suggesting that the additional features can help in this environment, but its overall detection quality is still weak. The ADAM-inspired baseline remains the most precise configuration, but its recall is low, so it detects only part of the attack activity.
 
 The detailed per-attack results in Appendix~\ref{app:customer_2_per_attack} confirm this pattern. The strongest customer 2 results are mainly driven by the T5/T4/T3 scenario, while the stealthier and slower scenarios remain difficult.  Under the original injected-attack-only labels, this appears as a large false-positive problem. However, this interpretation assumes that all non-injected customer traffic is benign.
 
@@ -575,7 +578,7 @@ The timing of this activity is shown in Figure~\ref{fig:customer2_port86_timelin
 \end{figure}
 
 
-An IP geolocation map in Figure illustrates the confirmed port-86 incident. The 43,446 external source IPs were distributed across many locations between 30 March 17:00 UTC and 31 March 09:00 UTC, supporting the interpretation of a broad Internet-sourced brute-force event.
+An IP geolocation map in Figure~\ref{fig:customer2_port86_ipinfo_map} illustrates the confirmed port-86 incident. The 43,446 external source IPs were distributed across many locations between 30 March 17:00 UTC and 31 March 09:00 UTC, supporting the interpretation of a broad Internet-sourced brute-force event.
 
 \begin{figure}[htbp]
 \centering
@@ -583,10 +586,6 @@ An IP geolocation map in Figure illustrates the confirmed port-86 incident. The 
 \caption{Approximate geographic distribution of the external source IPs involved in the confirmed port-86 brute-force incident in customer 2. The visualization is based on IP geolocation for 43,446 source IPs observed between 30 March 17:00 UTC and 31 March 09:00 UTC.}
 \label{fig:customer2_port86_ipinfo_map}
 \end{figure}
-
-
-
-
 
 
 
