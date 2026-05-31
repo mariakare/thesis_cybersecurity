@@ -24,7 +24,7 @@ The dataset should therefore be interpreted as network connection metadata obser
 \subsection{Data Confidentiality \& Limitations}
 \label{sec:data_lim_conf}
 
-The datasets used come from real OT environments of the collaborating companies. Because these environments are operationally sensitive, several details are intentionally omitted or anonymized. This includes the names of the companies, exact network topologies, device roles, raw IP addresses, and any information that could reveal the structure or operation of the industrial networks. Where examples are shown, synthetic or anonymized values are used.
+The datasets originate from real OT environments of the collaborating companies. Because these environments are operationally sensitive, several details are intentionally omitted or anonymized. This includes the names of the companies, exact network topologies, device roles, raw IP addresses, and any information that could reveal the structure or operation of the industrial networks. Where examples are shown, synthetic or anonymized values are used.
 
 
 For safety and operational reasons, reconnaissance attacks were not executed directly against the OT environments. Even harmless scanning activity can disrupt fragile or legacy industrial devices, trigger alerts, or interfere with normal operations. Instead, reconnaissance behavior was simulated in a controlled environment and injected into the real benign traffic. This approach allows the evaluation of attack detection methods while avoiding unnecessary risk to customer systems.
@@ -81,9 +81,28 @@ The raw conntrack data was logged as compressed binary event files. Each file co
 
 \input{tables/raw_conntrack}
 
-Table~\ref{tab:raw_conntrack_preview} shows a small preview of the raw event stream after decompression and initial parsing. The parser processes the event stream sequentially and maintains a dictionary of active connections indexed by connection identifier. \texttt{ADD} events initialize new active
-connections using the available packet metadata. \texttt{UPDATE}  events provide intermediate cumulative byte and packet counters
-for an active connection, while \texttt{DELETE} events finalize connections using the end timestamp and final byte and packet counters. \texttt{LIST}, \texttt{EMPTY}, \texttt{HEADER}, and \texttt{DROP} events are skipped because they do not describe a connection state transition that can be mapped to a reconstructed flow record.  \texttt{HEADER} events contain stream-level metadata, \texttt{EMPTY} events contain no connection data, \texttt{LIST} events are used for listing existing conntrack entries, and \texttt{DROP} events indicate records that were discarded.
+Table~\ref{tab:raw_conntrack_preview} shows a small preview of the raw event stream after decompression and initial parsing. The parser processes the event stream sequentially and maintains a dictionary of active connections indexed by connection identifier. Each event type in the conntrack stream is handled according to its semantics, as summarized in Table~\ref{tab:conntrack_event_types}.
+
+\begin{table}[h]
+    \centering
+    \small
+    \setlength{\tabcolsep}{12pt}
+    \caption{Conntrack event types and their handling in preprocessing.}
+    \label{tab:conntrack_event_types}
+    \begin{tabular}{llp{0.55\textwidth}}
+        \toprule
+        Event type & Used & Description \\
+        \midrule
+        ADD     & Yes  & Initializes a new active connection using available packet metadata. \\
+        UPDATE  & Yes  & Provides intermediate cumulative byte and packet counters for an active connection. \\
+        DELETE  & Yes  & Finalizes a connection using the end timestamp and final counters. \\
+        LIST    & No   & Used for listing existing conntrack entries; skipped. \\
+        EMPTY   & No   & Contains no connection data; skipped. \\
+        HEADER  & No   & Contains stream-level metadata; skipped. \\
+        DROP    & No   & Indicates records that were discarded; skipped. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 The resulting finalized connections, initially produced in connection-completion order, are converted into unidirectional flow records and sorted chronologically by start time in order to preserve information about communication directionality. Important characteristics of reconnaissance are not just the existence of a connection, but also which host initiated the communication, which hosts or ports were targeted, and whether the probing activity received responses. Table~\ref{tab:sorted_unidirectional} provides an example of flow produced by this preprocessing step.
 
@@ -111,12 +130,12 @@ The split was also performed before attack injection, as described in Section~\r
         
         \input{diagram.tex}%
     }
-    \caption{GRFICSv3 Network Diagram}
+    \caption{GRFICSv3 Network Diagram.}
     \label{fig:env_diagram}
 \end{figure}
 
 
-Due to the safety and operational concerns discussed in~\ref{sec:data_lim_conf}, the reconnaissance attacks were not executed against the companies' OT environments. Instead, they were simulated in a virtual OT lab based on the open-source GRFICSv3 environment~\cite{grficsv3_2026}. GRFICSv3 is a containerized ICS/OT cyber-physical security lab that simulates an industrial chemical plant.
+Due to the safety and operational concerns discussed in Section~\ref{sec:data_lim_conf}, the reconnaissance attacks were not executed against the companies' OT environments. Instead, they were simulated in a virtual OT lab based on the open-source GRFICSv3 environment~\cite{grficsv3_2026}. GRFICSv3 is a containerized ICS/OT cyber-physical security lab that simulates an industrial chemical plant.
 
 The attacks were run from the Kali attacker container (\texttt{192.168.90.6}) which, as shown in Figure~\ref{fig:env_diagram}, is located in the IT network. This represents the scenario where an attacker has obtained control over an IT-side host and performs reconnaissance towards the OT environment. The router/firewall container acts as the observation point, collecting all conntrack metadata form the crossing traffic.
 
@@ -218,7 +237,7 @@ It should be noted that while the injected traffic provides a useful approximati
 
 % \section{Feature Engineering}
 \section{Windowing}
-The split, sorted and unidirectional labeled conntrack flows cannot be used directly for model training. Instead, they were aggregated into features representing flow properties over a fixed-length time windows in order to describe the communication behavior of each source host over time. 
+The split, sorted, and unidirectional labeled conntrack flows cannot be used directly for model training. Instead, they were aggregated into features representing flow properties over a fixed-length time windows in order to describe the communication behavior of each source host over time. 
 
 
 Each model input is defined by a source IP address, a timestamp and a window length. In other words, all flows related to the same source host within that same time window are aggregated into one feature vector. For example, when using a 60-minute window, all flows associated with some source host \texttt{10.20.109.217} from 10:00 to 11:00 are combined into one vector containing features such as the number of contacted destination IPs, destination ports, protocol distribution, and packet or byte statistics. An example can be seen in Table~\ref{tab:feature_vector_preview}.
@@ -249,7 +268,7 @@ Each model input is defined by a source IP address, a timestamp and a window len
 \end{table}
 
 
-Prior work has shown that host‑level connection patterns are effective for traffic classification and anomaly detection, even when payloads are unavailable, traffic is unlabeled, or unidirectional\cite{dewaele_unsupervised_2010}. Similarly, as discussed in Section~\ref{sec:early_stage_detection}, reconnaissance behaviour can leave observable traces in network communication, such as connections to many destinations, probes to many ports, short-lived TCP flows or failed connection attempts. This makes a source-host window representation suitable for detecting reconnaissance activity. 
+Prior work has shown that host‑level connection patterns are effective for traffic classification and anomaly detection, even when payloads are unavailable, traffic is unlabeled, or unidirectional~\cite{dewaele_unsupervised_2010}. Similarly, as discussed in Section~\ref{sec:early_stage_detection}, reconnaissance behaviour can leave observable traces in network communication, such as connections to many destinations, probes to many ports, short-lived TCP flows or failed connection attempts. This makes a source-host window representation suitable for detecting reconnaissance activity. 
 
 Feature extraction is performed on training, validation, and test splits for four different window sizes: \SI{60}{s}, \SI{300}{s}, \SI{3600}{s}, and \SI{18000}{s}, corresponding to one minute, five minutes, one hour and five hours respectively. Using multiple window sizes makes it possible to compare how detection performance changes when short bursts and longer low-rate reconnaissance activity are aggregated at different temporal resolutions.
 
@@ -259,7 +278,7 @@ Feature extraction is performed on training, validation, and test splits for fou
 \label{sec:list_of_feat}
 
 
-As discussed in Section~\ref{sec:early_stage_detection}, reconnaissance is an early-stage attack activity aimed at discovering reachable hosts, open ports, exposed services, and network structure. In network-flow metadata, this behaviour is expected to appear as a change in how a source host communicates. A scanning host may contact more destinations than usual, probe more destination ports, generate many short or low-volume connections, and receive fewer replies when targets are inactive or closed. A list of features was chosen as a representation of this type of source behavior during the specified time window, and are displayed in Table~\ref{tab:feature_groups}. A more detailed explanation of each feature can be found in Appendix~\ref{app:feature_descriptions}.
+As discussed in Section~\ref{sec:early_stage_detection}, reconnaissance is an early-stage attack activity aimed at discovering reachable hosts, open ports, exposed services, and network structure. In network-flow metadata, this behaviour is expected to appear as a change in how a source host communicates. A scanning host may contact more destinations than usual, probe more destination ports, generate many short or low-volume connections, and receive fewer replies when targets are inactive or closed. A list of features was chosen as a representation of this type of source behavior during the specified time window, and are displayed in Table~\ref{tab:feature_groups}; each group is described in more detail below. A more detailed explanation of each feature can be found in Appendix~\ref{app:feature_descriptions}.
 
 
 
@@ -351,7 +370,7 @@ The \textbf{TCP scan behavior} features focus on TCP-specific probing. Since man
 
 The \textbf{entropy} features summarize how concentrated or dispersed communication is. Low entropy indicates that most traffic is concentrated on a small number of values, while higher entropy indicates a more diverse distribution. For a categorical feature $X$ with possible observed values $v_i$, the Shannon entropy is computed as:
 \[
-H(X) = - \sum_{i=1}^{m} p(v_i)\log_2 p(v_i),
+H(X) = - \sum_{i=1}^{m} p(v_i)\log_2 p(v_i)\, ,
 \]
 where $p(v_i)$ is the relative frequency of value $v_i$ in the considered source-host window, and $m$ is the number of distinct observed values. For example, \feat{port\_dst\_entropy} is computed from the distribution of destination ports contacted by a source host in a window, while \feat{ip\_dst\_entropy} is computed from the distribution of contacted destination IP addresses. A host that repeatedly communicates with one service has lower destination-port entropy than a host whose traffic is spread across many ports, which can indicate scanning behavior. Cai et al. use these exact features in their proposed ADAM scheme, which makes up one of the tested models in this thesis as discussed in Section~\ref{sec:ADAM}.
 
@@ -366,14 +385,14 @@ Feature sets were constructed using an iterative selection process, by comparing
 The pooled standard deviation is defined as
 \[
 \sigma_{\mathrm{pooled}} =
-\sqrt{\frac{\sigma_b^2 + \sigma_m^2}{2}},
+\sqrt{\frac{\sigma_b^2 + \sigma_m^2}{2}}\, ,
 \]
 
 The standardized mean difference for feature $f$ is then computed as
 
 \[
 \mathrm{SMD}(f) =
-\frac{\mu_m - \mu_b}{\sigma_{\mathrm{pooled}}}.
+\frac{\mu_m - \mu_b}{\sigma_{\mathrm{pooled}}}\, .
 \]
 
 Features were ranked by the absolute value $|\mathrm{SMD}(f)|$, where the vertical bars indicate that only the magnitude of the standardized difference is considered. This allows features with different numerical scales to be compared fairly and ensures that features are ranked highly regardless of whether their values increase or decrease during attacks. Median differences were also inspected to make the ranking easier to interpret for possible skewed features. This comparison was repeated for each different time window (\SI{60}{s}, \SI{300}{s}, \SI{3600}{s}, and \SI{18000}{s}) and for each different attack category grouped by intensity (T0/T1, T2, T3/T4/T5). As an indicator, Table~\ref{tab:global_feature_ranking} captures a global ranking of feature importance, combining all of the different window, attack combinations.
@@ -414,6 +433,10 @@ Rank & Feature & Median |SMD| & Mean |SMD| \\
 
 
 
+
+
+The ranked summaries of each attack group and window were used to identify feature families that consistently distinguished reconnaissance from benign traffic. Some of the strongest recurring features were \feat{ip\_dst\_entropy} and \feat{ip\_dst\_entropy\_mean3} representing destination spread, \feat{tcp\_short\_flow\_rate} and \feat{tcp\_short\_flow\_rate\_mean3} representing short-lived TCP scan behavior, and \feat{no\_reply\_packet\_score} and \feat{outbound\_ratio} representing failed or asymmetric communication. Two of these features are illustrated as boxplots in Figure~\ref{fig:selected_feature_boxplots}, visualizing the separation. Based on this information, candidate feature sets were constructed to cover multiple aspects of reconnaissance behavior while limiting redundancy between strongly related features.
+
 \begin{figure}[htbp]
     \centering
 
@@ -444,29 +467,29 @@ Rank & Feature & Median |SMD| & Mean |SMD| \\
     \label{fig:selected_feature_boxplots}
 \end{figure}
 
-The ranked summaries of each attack group and window were used to identify feature families that consistently distinguished reconnaissance from benign traffic. Some of the strongest recurring features were \feat{ip\_dst\_entropy} and \feat{ip\_dst\_entropy\_mean3} representing destination spread, \feat{tcp\_short\_flow\_rate} and \feat{tcp\_short\_flow\_rate\_mean3} representing short-lived TCP scan behavior, and \feat{no\_reply\_packet\_score} and \feat{outbound\_ratio} representing failed or asymmetric communication. Two of these features are illustrated as boxplots in Figure~\ref{fig:selected_feature_boxplots}, visualizing the separation. Based on this information, candidate feature sets were constructed to cover multiple aspects of reconnaissance behavior while limiting redundancy between strongly related features.
-
-This resulted in three types of feature sets. First, general-purpose sets, combining the strongest non-redundant features. Second, attack specific sets emphasizing particular behavior, such as fast and broad scans, stealthy and slow scans, or horizontal host discovery. The last type isolated specific signal families, such as entropy-only (ADAM), or asymmetry-only groups to get more information on which underlying reconnaissance behaviors contributed most to detection. It is important to clarify that the test split was not used during this feature-set construction process in order to avoid leakage. The exact feature sets can be observed in Appendix~\ref{app:feature_sets}.
+This resulted in three types of feature sets. First, general-purpose sets, combining the strongest non-redundant features. Second, attack specific sets emphasizing particular behavior, such as fast and broad scans, stealthy and slow scans, or horizontal host discovery. The last type isolated specific signal families, such as entropy-only (ADAM), or asymmetry-only groups to get more information on which underlying reconnaissance behaviors contributed most to detection. It is important to clarify that the test split was not used during this feature-set construction process in order to avoid leakage, meaning that information from the final evaluation data did not influence the feature selection. The exact feature sets can be observed in Appendix~\ref{app:feature_sets}.
 
 
 \section{Anomaly Detection Models}
+\label{sec:models}
 All models in this section are evaluated in a one-class anomaly detection setting. During training, the models do not rely on labeled data as they are only trained on benign windows, learning a reference of what normal traffic in a specific environment looks like and assigning an anomaly score to unseen windows based on their deviation from this benign reference. Ground-truth labels are introduced only after scoring, in order to evaluate performance.
 
 \subsection{k-Nearest Neighbors}
 \label{sec:knn_method}
-As discussed in Section~\ref{sec:literature_models}, k-Nearest Neighbors (k-NN) is traditionally a supervised learning algorithm, where a new sample is classified based on the labels of its closest neighbors in the training data. However, the same distance-based principle can also be used for one-class anomaly detection. There is no explicit training phase in which model parameters are learned. Instead, the benign training observations are stored as a reference set in the selected feature space. During evaluation, each new sample is compared to these stored benign observations using a distance metric. If the sample is close to previously observed normal behavior, it receives a low anomaly score. If it is far from the benign reference set, it receives a high anomaly score. A threshold is then used to decide when this distance is large enough for the window to be considered anomalous.
 
-This principle is reflected in our implementation. The k-NN model is fitted only on the benign training split for which training data is first sorted chronologically by \texttt{window\_start\_ts} and \texttt{window\_id}. The first 80\% of the sorted benign training data is used to build the nearest-neighbor reference set, while the remaining 20\% is kept aside for threshold calibration. This calibration subset is still benign, but is not used to fit the k-NN model itself. After fitting, the model is applied to the calibration subset to estimate the range of distance scores that can still occur under normal behavior. Different percentile thresholds are then tested based on this benign score distribution.
+As discussed in Section~\ref{sec:literature_models}, $k$-Nearest Neighbors ($k$-NN) is traditionally a supervised learning algorithm, where a new sample is classified based on the labels of its closest neighbors in the training data. However, the same distance-based principle can also be used for one-class anomaly detection. There is no explicit training phase in which model parameters are learned. Instead, the benign training observations are stored as a reference set in the selected feature space. During evaluation, each new sample is compared to these stored benign observations using a distance metric. If the sample is close to previously observed normal behavior, it receives a low anomaly score. If it is far from the benign reference set, it receives a high anomaly score. A threshold is then used to decide when this distance is large enough for the window to be considered anomalous.
 
-Features are scaled using \texttt{RobustScaler}~\cite{pedregosa_scikit-learn_nodate}, which is fitted only on the 80\% reference subset and then applied unchanged to the calibration and evaluation data. This scaler centers each feature around its median and scales it according to the interquartile range, meaning the spread between the 25th and 75th percentiles. Robust scaling was chosen because derived features may contain extreme values even in benign traffic, the effect of which is contained with this method. The nearest-neighbor search is implemented using the \texttt{NearestNeighbors} class from \texttt{scikit-learn}~\cite{pedregosa_scikit-learn_nodate}, configured with Euclidean distance. Meira et al. empirically validated the use of standard Euclidean distance as the core distance metric when successfully applying One-Class Nearest Neighbor algorithms to network intrusion detection datasets~\cite{meira_performance_2020}. For each input sample, the distances to the \(k\) nearest benign reference samples are computed, by averaging the scores to these \(k\) nearest neighbors.
+This principle is reflected in our implementation. The $k$-NN model is fitted only on the benign training split for which training data is first sorted chronologically by \texttt{window\_start\_ts} and \texttt{window\_id}. The first 80\% of the sorted benign training data is used to build the nearest-neighbor reference set, while the remaining 20\% is kept aside for threshold calibration. This calibration subset is still benign, but is not used to fit the $k$-NN model itself. After fitting, the model is applied to the calibration subset to estimate the range of distance scores that can still occur under normal behavior. Different percentile thresholds are then tested based on this benign score distribution.
+
+Features are scaled using \texttt{RobustScaler}~\cite{pedregosa_scikit-learn_nodate}, which is fitted only on the 80\% reference subset and then applied unchanged to the calibration and evaluation data. This scaler centers each feature around its median and scales it according to the interquartile range, meaning the spread between the 25th and 75th percentiles. Robust scaling was chosen because derived features may contain extreme values even in benign traffic, the effect of which is contained with this method. The nearest-neighbor search is implemented using the \texttt{NearestNeighbors} class from \texttt{scikit-learn}~\cite{pedregosa_scikit-learn_nodate}, configured with Euclidean distance. Meira et al. empirically validated the use of standard Euclidean distance as the core distance metric when successfully applying One-Class Nearest Neighbor algorithms to network intrusion detection datasets~\cite{meira_performance_2020}. For each input sample, the distances to the $k$ nearest benign reference samples are computed, by averaging the scores to these $k$ nearest neighbors.
 \subsubsection{ADAM}
 \label{sec:ADAM}
-An additional k-NN variant was included for evaluation based on the feature representation proposed in ADAM. ADAM combines entropy-based traffic profiling with unsupervised anomaly detection for DDoS mitigation in software-defined cyber-physical systems. Normal traffic is represented using entropy based features over the network and transport layer, and it selects k-NN as the anomaly detection module because of its balance between time overhead and detection effectiveness~\cite{cai_adam_2023}. In order to evaluate the effectiveness of the ADAM proposed feature set, some experiments were run exclusively using features form the Entropy group in Table~\ref{tab:feature_groups}.
+An additional $k$-NN variant was included for evaluation based on the feature representation proposed in ADAM. ADAM combines entropy-based traffic profiling with unsupervised anomaly detection for DDoS mitigation in software-defined cyber-physical systems. Normal traffic is represented using entropy based features over the network and transport layer, and it selects $k$-NN as the anomaly detection module because of its balance between time overhead and detection effectiveness~\cite{cai_adam_2023}. In order to evaluate the effectiveness of the ADAM proposed feature set, some experiments were run exclusively using features form the Entropy group in Table~\ref{tab:feature_groups}.
 
 
 
-\subsection{Outlier-aware Denoising Autoencoder(CPS-GUARD)}
-The next anomaly detection approach is based on the the CPS-GUARD method, which uses a semi-supervised deep autoencoder together with an outlier aware threshold selection procedure~\cite{catillo_cps-guard_2023}. Autoencoders are neural networks trained to reconstruct their own input. In anomaly detection, the underlying assumption is that the model trained on benign data will learn to reconstruct normal behavior well, while windows that differ from this learned normal behavior will result in a larger reconstruction error. This error can therefore be used as an anomaly score.
+\subsection{Outlier-aware Denoising Autoencoder (CPS-GUARD)}
+The next anomaly detection approach is based on the the CPS-GUARD method of Catillo et al.~\cite{catillo_cps-guard_2023}, that uses a semi-supervised deep autoencoder together with an outlier aware threshold selection procedure. Autoencoders are neural networks trained to reconstruct their own input. In anomaly detection, the underlying assumption is that the model trained on benign data will learn to reconstruct normal behavior well, while windows that differ from this learned normal behavior will result in a larger reconstruction error. This error can therefore be used as an anomaly score.
 
 The model is again trained only on benign training windows. The selected input features are first scaled using a preprocessing pipeline consisting of \texttt{RobustScaler} followed by \texttt{MinMaxScaler} with a target range of \([-1,1]\). Robust scaling is used to reduce the influence of extreme feature values, while the min-max scaling step matches the range of the autoencoder output layer, which uses a \texttt{tanh} activation function.
 
@@ -478,13 +501,17 @@ For threshold selection, the benign training data is divided into an autoencoder
 
 
 \subsection{K-means}
-The final model used is based on K-means clustering. K-means is an unsupervised clustering algorithm that partitions the training data into \(k\) clusters by assigning samples to the nearest cluster centroid. Although K-means is primarily a clustering algorithm, it can be adapted to one-class anomaly detection by treating the distance to the nearest benign cluster centroid as an anomaly score~\cite{meira_performance_2020}. Then, during evaluation, a new sample is compared to these centroids. Samples close to one of the benign clusters receive a low anomaly score, while samples far away from all learned centroids receive a high anomaly score.
+The final model used is based on K-means clustering. K-means is an unsupervised clustering algorithm that partitions the training data into \(k\) clusters by assigning samples to the nearest cluster centroid~\cite{kanungo2000kmeans}. Although K-means is primarily a clustering algorithm, it can be adapted to one-class anomaly detection by treating the distance to the nearest benign cluster centroid as an anomaly score~\cite{meira_performance_2020}. Then, during evaluation, a new sample is compared to these centroids. Samples close to one of the benign clusters receive a low anomaly score, while samples far away from all learned centroids receive a high anomaly score.
 
 As repeated for the previous models, the K-means model is fitted only on the benign training split. The training data is first sorted chronologically by \feat{window\_start\_ts} and \feat{window\_id} of which the first 80\%  is used to fit the K-means model, while the remaining 20\% is kept aside as a benign calibration subset for threshold selection. Features are scaled using \feat{RobustScaler}, which is fitted only on the 80\% model-fitting subset and then applied unchanged to the calibration and evaluation data.
 
 After training, each calibration sample is assigned an anomaly score equal to its Euclidean distance to the nearest cluster centroid. As in the k-NN implementation described in Section~\ref{sec:knn_method}, Euclidean distance is used after robust scaling of the selected features.  The anomaly threshold is then selected as a tested quantile of these benign calibration distances. During evaluation, each validation or test window is scaled using the same scaler and assigned its nearest-centroid distance. A window is classified as anomalous when this distance exceeds the selected threshold.
 
 Several values for the number of clusters are tested. Smaller values force the model to represent benign behavior using only a few broad traffic profiles, while larger values allow the model to capture more fine-grained modes of normal behavior. Similarly to the k-NN approach, different threshold quantiles are evaluated to study the trade-off between detecting malicious windows and limiting false positives on benign traffic.  The implementation uses the \texttt{MiniBatchKMeans} class from \texttt{scikit-learn}~\cite{pedregosa_scikit-learn_nodate}.
+
+\subsection{Implementation details}
+
+The experiments were implemented as a Python-based pipeline. The earlier data-processing stages use \texttt{pandas}, \texttt{Dask} and Parquet-based intermediate files to process reconstructed conntrack flows and store window-based feature tables. The model-specific implementation details are described in Section~\ref{sec:models}. To support reproducibility and inspection, each experimental run stores its configuration and outputs in structured result folders, including selected features, model parameters, thresholds, metric summaries and log files. The implementation was tested through sanity checks at different stages of the pipeline, to ensure that each stage was exectued as expected.
 
 
 
@@ -503,6 +530,7 @@ The sweeps are organized around four main dimensions. First, multiple aggregatio
 
 \begin{table}[h]
 \centering
+\caption{Overview of the evaluated model configuration space.}
 \renewcommand{\arraystretch}{1.35}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{p{0.26\textwidth} p{0.26\textwidth} p{0.40\textwidth}}
@@ -547,7 +575,7 @@ Autoencoder
 
 \bottomrule
 \end{tabular}
-\caption{Overview of the evaluated model configuration space.}
+
 \label{tab:sweep_configuration}
 \end{table}
 
@@ -558,11 +586,12 @@ After exploring the configuration space in Table~\ref{tab:sweep_configuration}, 
 
 \subsection{K-NN resource constraints}
 \label{sec:knn_resource_constraints}
-Due to the higher computational cost of k-NN, the k-NN experiments were not swept as exhaustively as the K-Means and autoencoder-based configurations. In particular, evaluating k-NN requires comparing each validation or test sample against the stored benign reference set, which made a full sweep over all feature sets, window sizes and values of \(k\) impractical with the available resources. K-Means and the autoencoder-based model were first evaluated over the full planned configuration space using the validation split, including all candidate feature sets, aggregation window sizes and threshold settings. These validation results were then used to identify feature sets that performed well across multiple reconnaissance scenarios and were not tailored to a single attack type.
 
-Based on these validation results, a smaller exploratory k-NN sweep was performed. This sweep still evaluated all aggregation window sizes and threshold quantiles, but for a more reduced set of promising feature sets. Its purpose was twofold: first, to verify whether the selected feature sets also worked well for the distance-based k-NN model, and second, to compare the effect of different values of \(k\).
+Due to the higher computational cost of $k$-NN, the $k$-NN experiments were not swept as exhaustively as the K-Means and autoencoder-based configurations. In particular, evaluating $k$-NN requires comparing each validation or test sample against the stored benign reference set, which made a full sweep over all feature sets, window sizes and values of $k$ impractical with the available resources. The experiments were executed on a remote CPU-only machine with two Intel Xeon Silver 4316 processors, 80 logical CPU threads and 503 GiB of RAM. The longest customer 1 $k$-NN run took about 6 hours per configuration, while customer 2, which contained more windows despite covering the same number of days, required up to 18 hours to score all evaluation windows. K-Means and the autoencoder-based model were first evaluated over the full planned configuration space using the validation split, including all candidate feature sets, aggregation window sizes and threshold settings. These validation results were then used to identify feature sets that performed well across multiple reconnaissance scenarios and were not tailored to a single attack type.
 
-The exploratory k-NN results showed that \(k=5\) did not provide a meaningful improvement over the other tested values. In the few cases where \(k=5\) obtained the highest score, the absolute detection performance remained low and was therefore not practically relevant. Consequently, \(k=5\) was excluded from the final k-NN sweep. The final k-NN evaluation was then performed on the selected top three feature sets based on all previous results, using all aggregation window sizes and all threshold quantiles for the remaining values of \(k\).
+Based on these validation results, a smaller exploratory $k$-NN sweep was performed. This sweep still evaluated all aggregation window sizes and threshold quantiles, but for a more reduced set of promising feature sets. Its purpose was twofold: first, to verify whether the selected feature sets also worked well for the distance-based $k$-NN model, and second, to compare the effect of different values of $k$.
+
+The exploratory $k$-NN results showed that $k=5$ did not provide a meaningful improvement over the other tested values. In the few cases where $k=5$ obtained the highest score, the absolute detection performance remained low and was therefore not practically relevant. Consequently, $k=5$ was excluded from the final $k$-NN sweep. The final $k$-NN evaluation was then performed on the selected top three feature sets based on all previous results, using all aggregation window sizes and all threshold quantiles for the remaining values of $k$.
 
 
 
@@ -572,58 +601,10 @@ The exploratory k-NN results showed that \(k=5\) did not provide a meaningful im
 
 \section{Evaluation Metrics}
 
+The models are evaluated using the window-level and range-level metrics defined in Section~\ref{sec:evaluation_metrics}. In the window-level evaluation, true positives, false positives and false negatives are counted over individual source-host windows. A true positive is a window that overlaps with an attack interval and is predicted as anomalous. A false positive is a benign window that is incorrectly predicted as anomalous, while a false negative is an attack window that is not detected.
 
+For the range-level evaluation, the true labels and model predictions are first processed separately for each source host. After sorting by timestamp, consecutive positive windows are grouped into temporal ranges. Two windows are considered consecutive when they belong to the same source host and the gap between their window start timestamps does not exceed \(1.5\) times the aggregation window length. A true attack range is counted as detected when at least one predicted anomalous range overlaps with it, according to the overlap condition in Equation~\ref{eq:range_overlap}. Predicted anomalous ranges that do not overlap with any true attack range are counted as range-level false positives, while true attack ranges without any overlapping prediction are counted as range-level false negatives. The range-level metric therefore follows an event-detection interpretation and does not require every malicious window inside an attack interval to be classified correctly.
 
-The models are evaluated using both window-level and range-level metrics. Window-level F1 treats each window independently which can be limiting for reconnaissance detection, because an attack is usually not a single isolated window, but an activity that unfolds over a continuous time interval. A detector that raises at least one alarm during such an interval may already be useful from an operational perspective, even if it does not flag every malicious window. Similarly, a model may obtain a good window level F1-score while producing several separate false alarm intervals, which would be less desirable for an operator. This issue is also discussed by Fung et al.~\cite{atluri_perspectives_2022} who show that point-wise F1 can give a misleading impression of anomaly detection performance in ICS time-series settings, and argue that range-based metrics better capture operational objectives such as reducing false alarms and detecting attack intervals.
-
-Window-level precision, recall and F1-score are computed from the number of true positives, false positives and false negatives over all evaluated windows. A true positive (TP) is a window that overlaps with an attack interval and is predicted as anomalous. A false positive (FP) is a benign window that is incorrectly predicted as anomalous, while a false negative (FN) is an attack window that is not detected. These metrics provide a more fine grained view and are useful for comparing how precisely each model identifies anomalous windows. 
-
-For the discussed range-based precision, recall and F1-score, the true labels and model predictions are first processed separately for each source host. After sorting by timestamp, consecutive positive windows are grouped into temporal ranges. Two windows are considered consecutive when they belong to the same source host and the gap between their window start timestamps does not exceed \(1.5\) times the aggregation window length. A true attack range is counted as detected when at least one predicted anomalous range overlaps with it. Predicted anomalous ranges that do not overlap with any true attack range are counted as range-level false positives, while true attack ranges without any overlapping prediction are counted as range-level false negatives. Hence, the range-based metric used therefore follows an event-detection interpretation. It does not require every malicious window inside an attack interval to be classified correctly.
-
-
-Window-level precision, recall and F1-score are defined as:
-
-\begin{equation}
-    \text{Precision} = \frac{TP}{TP + FP}
-\end{equation}
-
-\begin{equation}
-    \text{Recall} = \frac{TP}{TP + FN}
-\end{equation}
-
-\begin{equation}
-    F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}
-    {\text{Precision} + \text{Recall}}
-\end{equation}
-
-where \(TP\), \(FP\), and \(FN\) are counted over individual source-host windows.
-
-
-The same precision, recall and F1-score definitions are then applied at the range level:
-
-
-
-\begin{equation}
-    \text{Range Precision} = 
-    \frac{TP_{\text{range}}}{TP_{\text{range}} + FP_{\text{range}}}
-\end{equation}
-
-\begin{equation}
-    \text{Range Recall} = 
-    \frac{TP_{\text{range}}}{TP_{\text{range}} + FN_{\text{range}}}
-\end{equation}
-
-\begin{equation}
-    F_{1,\text{range}} =
-    2 \cdot
-    \frac{\text{Range Precision} \cdot \text{Range Recall}}
-    {\text{Range Precision} + \text{Range Recall}}
-\end{equation}
-
-A predicted range \(P=[p_s,p_e]\) overlaps a true attack range \(T=[t_s,t_e]\) when:
-\[
-p_s \leq t_e \land p_e \geq t_s .
-\]
 
 Both metrics are reported because they provide complementary views of the same predictions. Window-level F1 evaluates each source-host window separately, while range-level F1 summarizes consecutive detections into temporal alarm ranges. Differences between them are therefore interpreted as different perspectives on model performance, rather than as contradictory results.
 

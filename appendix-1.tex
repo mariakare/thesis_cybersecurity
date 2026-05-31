@@ -1,4 +1,4 @@
-\chapter{The First Appendix}
+\chapter{Features and Feature Sets}
 \label{app:A}
 
 
@@ -94,6 +94,7 @@ outbound\_ratio\_delta1 & Difference in \texttt{outbound\_ratio} compared to the
 outbound\_ratio\_mean3 & Rolling mean of \texttt{outbound\_ratio} over the current and two previous windows. \\
 
 \end{longtable}
+
 
 
 \section{Feature Sets}
@@ -217,15 +218,17 @@ Feature set & Included features \\
 \end{longtable}
 
 
+
+\chapter{Additional Results}
 \section{Additional Validation Rankings}
 \label{app:additional_validation_rankings}
-
-
 \begin{table}[htbp]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{2pt}
+\caption{Top validation configurations ranked by window-level F1. RF1 denotes range-level F1, P/R denote precision and recall, and RP/RR denote range-level precision and recall.}
+\label{tab:appendix_top_val_f1}
 \begin{adjustbox}{width=1.35\textwidth,center}
 \begin{tabular}{r l p{0.25\textwidth} l l l r r r r r r}
 \toprule
@@ -266,8 +269,6 @@ Rank & Model & Feature set & Win. & Param. & Thr.
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Top validation configurations ranked by window-level F1. RF1 denotes range-level F1, P/R denote precision and recall, and RP/RR denote range-level precision and recall.}
-\label{tab:appendix_top_val_f1}
 \end{table}
 
 
@@ -276,6 +277,8 @@ Rank & Model & Feature set & Win. & Param. & Thr.
 \scriptsize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{2pt}
+\caption{Top validation configurations ranked by range-level F1. RF1 denotes range-level F1, P/R denote window-level precision and recall, and RP/RR denote range-level precision and recall.}
+\label{tab:appendix_top_val_rf1}
 \begin{adjustbox}{width=1.35\textwidth,center}
 \begin{tabular}{r l p{0.25\textwidth} l l l r r r r r r}
 \toprule
@@ -316,12 +319,10 @@ Rank & Model & Feature set & Win. & Param. & Thr.
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Top validation configurations ranked by range-level F1. RF1 denotes range-level F1, P/R denote window-level precision and recall, and RP/RR denote range-level precision and recall.}
-\label{tab:appendix_top_val_rf1}
 \end{table}
 
 %==========================================================================================================================================================
-
+\FloatBarrier
 \section{Customer 2 Per-Attack Results}
 \label{app:customer_2_per_attack}
 
@@ -332,6 +333,8 @@ Rank & Model & Feature set & Win. & Param. & Thr.
 \scriptsize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
+\caption{TODO}
+\label{tab:customer2_overall_selected_per_attack}
 \begin{adjustbox}{width=1.25\textwidth,center}
 \begin{tabular}{l l l l l r r r r r r r r}
 \toprule
@@ -433,8 +436,6 @@ F1
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{TODO}
-\label{tab:customer2_overall_selected_per_attack}
 \end{table}
 
 \begin{table}[htbp]
@@ -442,7 +443,11 @@ F1
 \tiny
 \renewcommand{\arraystretch}{1.08}
 \setlength{\tabcolsep}{2pt}
+\caption{TODO}
+\label{tab:appendix_customer2_selected_per_attack}
 \begin{adjustbox}{width=1.32\textwidth,center}
+% \label{tab:customer2_c1_selected_per_attack_nonzero}
+% \begin{adjustbox}{width=1.32\textwidth,center}
 \begin{tabular}{l l p{0.25\textwidth} l r r r r r r}
 \toprule
 Model & Basis & Configuration & Attack & P & R & \textbf{F1} & RP & RR & \textbf{RF1} \\
@@ -519,8 +524,6 @@ Model & Basis & Configuration & Attack & P & R & \textbf{F1} & RP & RR & \textbf
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{TODO}
-\label{tab:appendix_customer2_selected_per_attack}
 \end{table}
 
 

@@ -13,27 +13,14 @@
 
 \section{Evaluation Overview}
 % Briefly explain models, splits, metrics and how to read the results.
-\textcolor{blue}{is this too much repetition?}
 
 
-This chapter presents the experimental results of the evaluated anomaly detection models on the constructed reconnaissance detection datasets. The goal of the evaluation is to determine to what extent unsupervised models trained only on benign conntrack-derived traffic can detect injected reconnaissance activity in real OT background traffic. As described in Section~\ref{sec:experimental_configuration}, the configurations vary in feature set, aggregation window length, anomaly threshold, and model-specific parameters.
-For k-NN, the search space is more limited than for K-Means and the autoencoder
-because of its higher computational cost. The k-NN results are therefore
-interpreted as a targeted evaluation of validation-selected feature sets rather
-than as a full sweep over all candidate feature sets.
 
 
-The experiments are evaluated in two stages. The main model selection is performed on customer 1. First, the customer 1 validation split is used to compare configurations and identify promising model, feature-set and parameter combinations. These validation results are used for model selection and for understanding the effect of design choices such as window size and feature selection. The selected configurations are then evaluated on the customer 1 test split, which is kept separate from the selection process and is used to assess how well the chosen configurations generalize to another period of network traffic. In a final step, the selected top configurations are also evaluated on customer 2 as an additional cross-environment check.
+This chapter presents the experimental results for the evaluated unsupervised ano\-maly detection models on the constructed reconnaissance detection datasets. The goal is to assess whether models trained only on benign conntrack-derived traffic can detect injected reconnaissance activity in real OT background traffic. The evaluated configurations vary in model family, feature set, aggregation window length, anomaly threshold and model-specific parameters, as described in Section~\ref{sec:experimental_configuration}.
 
-The results are reported using both window-level and range-level metrics.
-Window-level metrics treat each source-host window as an individual prediction
-and therefore measure how accurately the model classifies separate time windows. Range-level metrics instead group consecutive anomalous windows into alarm ranges and compare these ranges with the true attack intervals. This provides a more operational view of the results, since reconnaissance activity usually unfolds over a period of time rather than in a single isolated window.
+The evaluation is organized in three steps. First, the customer 1 validation split is used to rank feature sets and model configurations. Second, the selected configurations are evaluated on the separate customer 1 test split to assess robustness across a different benign traffic period. Finally, the same selected configurations are evaluated on customer 2 as a cross-environment check.
 
-Both views are used throughout the discussion. Window-level F1 indicates how
-precise the model is at the individual-window level, while range-level F1
-indicates whether complete reconnaissance scenarios are detected as temporal
-events and how many separate false alarm ranges are produced. A model may
-therefore have a moderate window-level score while still detecting the relevant attack interval, or a strong window-level score while producing fragmented alarms.
 
 Unless stated otherwise, the tables in this chapter report configurations selected according to validation performance, followed by their corresponding test-set performance.  The reported overall scores aggregate all evaluated reconnaissance scenarios, ranging from the more aggressive T5/T4 scans to the slower T1/T0 scans. Differences between validation and test results are interpreted as an indication of robustness and sensitivity to the underlying benign traffic period.
 
@@ -51,6 +38,7 @@ Before comparing the final model configurations on the test split, the validatio
 \begin{table}[htbp]
 \centering
 \small
+\caption{Validation-based feature set ranking. RF1 denotes range-level F1, and \#configs is the number of validation configurations included for each feature set. The selection score is computed as the average of mean validation RF1 and mean validation window-level F1. Highlighted rows indicate the feature sets selected for the final cross-model comparison and targeted k-NN evaluation.}
 \renewcommand{\arraystretch}{1.25}
 \setlength{\tabcolsep}{3.5pt}
 \makebox[\textwidth][c]{%
@@ -99,21 +87,21 @@ Feature set & \#configs & Mean RF1 & Mean F1 & Score \\
 
 \end{tabularx}
 }
-\caption{Validation-based feature set ranking. RF1 denotes range-level F1, and \#configs is the number of validation configurations included for each feature set. The selection score is computed as the average of mean validation RF1 and mean validation window-level F1. Highlighted rows indicate the feature sets selected for the final cross-model comparison and targeted k-NN evaluation.}
+
 \label{tab:validation_feature_set_ranking}
 \end{table}
 
 
 
-The goal of this selection was not only to find the highest individual validation score, but to identify feature sets that performed well across multiple reconnaissance scenarios. Feature sets that were designed for one specific attack type were therefore interpreted with caution, even when they achieved strong results on that specific attack. Instead, preference was given to feature sets with broader coverage across the evaluated attacks. To summarize the validation results across feature sets, a compact selection score is used. This score gives equal weight to the mean validation range F1 and the mean validation window-level F1. Table~\ref{tab:validation_feature_set_ranking} shows the resulting ranking. 
+The goal of this selection was not only to find the highest individual validation score, but to identify feature sets that performed well across multiple reconnaissance scenarios. Feature sets that were designed for one specific attack type were therefore interpreted with caution, even when they achieved strong results on that specific attack. Instead, preference was given to feature sets with broader coverage across the evaluated attacks. To summarize the validation results across feature sets, a compact selection score is used. This score is the average of the mean validation range F1 and the mean validation window-level F1. Table~\ref{tab:validation_feature_set_ranking} shows the resulting ranking. 
 
 
-The number of configurations is not identical for all feature sets. The general-purpose feature sets were included in the full K-Means and autoencoder validation sweeps. In contrast, \feat{adam\_entropy} was evaluated as an ADAM-inspired k-NN baseline and therefore has fewer configurations. It will be further discussed in Section~\ref{sec:adam_baseline}. Similarly, \feat{horizontal\_scan\_clean} and \feat{ablation\_asymmetry\_only} were dropped earlier based on their weaker validation behavior, so their scores are based on a smaller set of configurations. 
+The number of configurations is not identical for all feature sets. The general-purpose feature sets were included in the full K-Means and autoencoder validation sweeps. In contrast, \feat{adam\_entropy} was evaluated as an ADAM-inspired k-NN baseline and therefore has fewer configurations. It will be further discussed in Section~\ref{sec:overall_model_performance}. Similarly, \feat{horizontal\_scan\_clean} and \feat{ablation\_asymmetry\_only} were dropped earlier based on their weaker validation behavior, so their scores are based on a smaller set of configurations. 
 
 The two strongest feature sets are \feat{golden\_minimal} and \feat{omni\_core\_clean}, which both achieve the highest combined validation scores. Since \feat{golden\_minimal} is a subset of \feat{omni\_core\_clean}, its stronger validation score suggests that the additional features in \feat{omni\_core\_clean} do not necessarily improve detection performance.
 \feat{low\_slow\_clean} is also retained because it is the next strongest general-purpose feature set and is relevant for slower reconnaissance behaviour. Although \feat{T2\_stealth\_scan} achieves competitive scores in some cases, it is more closely tied to a specific attack type and is therefore not selected.
 
-The three highest-scoring general feature sets thus are \feat{golden\_minimal}, \texttt{omni\_core\_clean}, and \texttt{low\_slow\_clean}. These are therefore retained for the final cross-model comparison and for the reduced k-NN evaluation.
+The three highest-scoring general feature sets thus are \feat{golden\_minimal}, \feat{omni\_core\_clean}, and \feat{low\_slow\_clean}. These are therefore retained for the final cross-model comparison and for the reduced k-NN evaluation.
 
 
 
@@ -158,6 +146,7 @@ The rankings also show why F1 should not be interpreted in isolation. Several co
 \begin{table}[htbp]
 \centering
 \scriptsize
+\caption{Selected validation candidates per model family. The highlighted rows indicate the representative configurations retained for the main comparison. F1 denotes window-level F1, RP/RR/RF1 denote range-level precision, recall and F1.}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{2pt}
 \begin{adjustbox}{width=1.35\textwidth,center}
@@ -238,7 +227,7 @@ ADAM-inspired k-NN
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Selected validation candidates per model family. The highlighted rows indicate the representative configurations retained for the main comparison. F1 denotes window-level F1, RP/RR/RF1 denote range-level precision, recall and F1.}
+
 \label{tab:selected_model_candidates}
 \end{table}
 
@@ -265,6 +254,7 @@ the range level.
 \begin{table}[htbp]
 \centering
 \scriptsize
+\caption{Test-set performance of the validation-selected representative configurations. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1. }
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
 \begin{adjustbox}{width=1.35\textwidth,center}
@@ -307,14 +297,14 @@ ADAM-inspired k-NN
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Test-set performance of the validation-selected representative configurations. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1. }
+
 \label{tab:selected_test_performance}
 \end{table}
 
 % confusion matrix of best feature set per attack type?
 
 
-The selected CPS-GUARD configuration generalizes best to the test split. It achieves a window-level F1-score of 0.995 and detects all test attack ranges, resulting in a range-level F1-score of 1.000. This indicates that the validation performance was not only caused by overfitting to the validation period.It is also notable that this configuration uses the \feat{golden\_minimal} feature set and the original CPS-GUARD-style 36-6-36 architecture.
+The selected CPS-GUARD configuration generalizes best to the test split. It achieves a window-level F1-score of 0.995 and detects all test attack ranges, resulting in a range-level F1-score of 1.000. This indicates that the validation performance was not only caused by overfitting to the validation period. It is also notable that this configuration uses the \feat{golden\_minimal} feature set and the original CPS-GUARD-style 36-6-36 architecture.
 % best architecture is the one suggested by original paper. Also golden_minimal best preforming feature set.
 
 The selected K-Means configuration retains strong window-level recall on the test split, but its range-level precision is low. This means that although many attack windows are detected, the predictions are fragmented into several false alarm ranges, which would increase the amount of analyst work in an operational setting.
@@ -340,6 +330,7 @@ Table~\ref{tab:per_attack_selected_models} shows that the selected CPS-GUARD con
 \begin{table}[htbp]
 \centering
 \scriptsize
+\caption{Test performance per reconnaissance scenario for the selected configurations. F1 denotes window-level F1 and RF1 denotes range-level F1.}
 \renewcommand{\arraystretch}{1}
 \setlength{\tabcolsep}{8pt}
 \begin{adjustbox}{width=1\textwidth,center}
@@ -361,7 +352,7 @@ ADAM-inspired k-NN & RF1 & 0.000 & 1.000 & 1.000 & 1.000 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Test performance per reconnaissance scenario for the selected configurations. F1 denotes window-level F1 and RF1 denotes range-level F1.}
+
 \label{tab:per_attack_selected_models}
 \end{table}
 
@@ -387,6 +378,7 @@ The results are shown in Table~\ref{tab:customer2_customer1_selected_configs}.
 \begin{table}[htbp]
 \centering
 \scriptsize
+\caption{Customer 2 performance of the configurations selected from the customer 1 validation results. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
 \begin{adjustbox}{width=1.32\textwidth,center}
@@ -428,7 +420,7 @@ ADAM-inspired k-NN
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Customer 2 performance of the configurations selected from the customer 1 validation results. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
+
 \label{tab:customer2_customer1_selected_configs}
 \end{table}
 
@@ -439,6 +431,7 @@ The per-attack breakdown in Table~\ref{tab:customer2_c1_selected_per_attack_nonz
 \begin{table}[htbp]
 \centering
 \small
+\caption{Non-zero customer 2 per-attack results for the configurations selected on customer 1 validation. P/R/F1 denote window-level precision, recall and F1, while RF1 denotes range-level F1. All omitted attack/model combinations obtain both window-level F1 and range-level F1 equal to zero.}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{l l r r r r}
@@ -463,7 +456,7 @@ ADAM-inspired k-NN
 & 1.000 & 1.000 & \textbf{1.000} & \textbf{1.000} \\
 \bottomrule
 \end{tabular}
-\caption{Non-zero customer 2 per-attack results for the configurations selected on customer 1 validation. P/R/F1 denote window-level precision, recall and F1, while RF1 denotes range-level F1. All omitted attack/model combinations obtain both window-level F1 and range-level F1 equal to zero.}
+
 \label{tab:customer2_c1_selected_per_attack_nonzero}
 \end{table}
 
@@ -476,6 +469,7 @@ A second analysis therefore allows the threshold or contamination value to be se
 \begin{table}[htbp]
 \centering
 \scriptsize
+\caption{Customer 2 performance of the best contamination and threshold values and best preforming feature set chosen between \texttt{golden\_minimal} and \texttt{omni\_core\_clean}. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{2.5pt}
 \begin{adjustbox}{width=1.35\textwidth,center}
@@ -560,7 +554,7 @@ ADAM-inspired k-NN
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{Customer 2 performance of the best contamination and threshold values and best preforming feature set chosen between \texttt{golden\_minimal} and \texttt{omni\_core\_clean}. P/R/F1 denote window-level precision, recall and F1. RP/RR/RF1 denote range-level precision, recall and F1.}
+
 \label{tab:customer2_tuned_configs}
 \end{table}
 
@@ -625,7 +619,7 @@ So
 % SOC usefulness, false alarms, recommended configuration.
 % Optional short IT comparison here if you have it.
 
-From an operational perspective, the selected CPS-GUARD configuration is the most suitable candidate among the evaluated models. It preforms well across both evaluation metrics, meaning that. it not only identifies many malicious windows but also produces alarm ranges that correspond well to the injected reconnaissance intervals. 
+From an operational perspective, the selected CPS-GUARD configuration is the most suitable candidate among the evaluated models. It preforms well across both evaluation metrics, meaning that it not only identifies many malicious windows but also produces alarm ranges that correspond well to the injected reconnaissance intervals. 
 
 This shows why range-level evaluation is important for practical use. A detector that achieves high window-level recall can still be difficult to use if its false positives are spread over many separate alarm ranges. For K-Means and k-NN, while they detect many attack windows, they produce lower range precision. In a SOC setting, this would increase the number of alarm periods that an analyst has to inspect. Therefore, the most useful configuration is not necessarily the one with the highest window-level recall, but the one that provides a manageable number of meaningful alarm ranges.
 

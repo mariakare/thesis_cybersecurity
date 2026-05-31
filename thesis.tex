@@ -28,6 +28,7 @@
 \usepackage{multirow}
 \usepackage{tikz}
 \usepackage{siunitx}
+\usepackage{placeins}
 \usepackage{array}
 \usepackage{makecell}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
@@ -41,6 +42,10 @@
 \usepackage{longtable}
 \usepackage{seqsplit}
 \newcommand{\feat}[1]{\texttt{\seqsplit{#1}}}
+%%%%%%% BIBLATEX
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{references.bib}
+%%%%%%%
 %%%%%%%
 % The lipsum package is used to generate random text.
 % You never need this in a real master's thesis text!
@@ -122,8 +127,7 @@ The intention is that this should be limited to 1 page.
 % \include{appendix-n}
 \backmatter
 % The bibliography comes after the appendices.
-% You can replace the standard "abbrv" bibliography style by another one.
-\bibliographystyle{abbrv}
-\bibliography{references}
+% Using biblatex for broader .bib field support
+\printbibliography
 \include{CoC}
 \end{document}
